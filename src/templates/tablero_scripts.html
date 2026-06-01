@@ -1,0 +1,272 @@
+<script>
+    function obtenerCodigoBandera(nombrePais) {
+        const codigos = {
+            'Mexico': 'mx', 'México': 'mx',
+            'South Africa': 'za', 'Sudáfrica': 'za',
+            'Korea Republic': 'kr', 'Corea del Sur': 'kr',
+            'Czechia': 'cz', 'Chequia': 'cz',
+            'Canada': 'ca', 'Canadá': 'ca',
+            'Bosnia-Herzegovina': 'ba', 'Bosnia y Herzegovina': 'ba',
+            'USA': 'us', 'Estados Unidos': 'us',
+            'Paraguay': 'py',
+            'Qatar': 'qa', 'Catar': 'qa',
+            'Switzerland': 'ch', 'Suiza': 'ch',
+            'Brazil': 'br', 'Brasil': 'br',
+            'Morocco': 'ma', 'Marruecos': 'ma',
+            'Haiti': 'ht', 'Haití': 'ht',
+            'Scotland': 'gb-sct', 'Escocia': 'gb-sct',
+            'Australia': 'au',
+            'Turkey': 'tr', 'Turquía': 'tr',
+            'Germany': 'de', 'Alemania': 'de',
+            'Curaçao': 'cw', 'Curazao': 'cw',
+            'Netherlands': 'nl', 'Países Bajos': 'nl',
+            'Japan': 'jp', 'Japón': 'jp',
+            "Côte d'Ivoire": 'ci', 'Costa de Marfil': 'ci',
+            'Ecuador': 'ec',
+            'Sweden': 'se', 'Suecia': 'se',
+            'Tunisia': 'tn', 'Túnez': 'tn',
+            'Spain': 'es', 'España': 'es',
+            'Cabo Verde': 'cv',
+            'Belgium': 'be', 'Bélgica': 'be',
+            'Egypt': 'eg', 'Egipto': 'eg',
+            'Saudi Arabia': 'sa', 'Arabia Saudita': 'sa',
+            'Uruguay': 'uy',
+            'IR Iran': 'ir', 'Irán': 'ir',
+            'New Zealand': 'nz', 'Nueva Zelanda': 'nz',
+            'France': 'fr', 'Francia': 'fr',
+            'Senegal': 'sn',
+            'Iraq': 'iq', 'Irak': 'iq',
+            'Norway': 'no', 'Noruega': 'no',
+            'Argentina': 'ar',
+            'Algeria': 'dz', 'Argelia': 'dz',
+            'Austria': 'at',
+            'Jordan': 'jo', 'Jordania': 'jo',
+            'Portugal': 'pt',
+            'Congo DR': 'cd', 'RD del Congo': 'cd',
+            'Uzbekistan': 'uz', 'Uzbekistán': 'uz',
+            'Colombia': 'co',
+            'England': 'gb-eng', 'Inglaterra': 'gb-eng',
+            'Croatia': 'hr', 'Croacia': 'hr',
+            'Ghana': 'gh',
+            'Panama': 'pa', 'Panamá': 'pa'
+        };
+
+        return codigos[nombrePais] || null;
+    }
+
+    function banderaHtml(nombrePais) {
+        const code = obtenerCodigoBandera(nombrePais);
+        if (!code) {
+            return '';
+        }
+        return `<img src="https://media.api-sports.io/flags/${code}.svg" alt="${nombrePais}" class="flag-icon" onerror="this.style.display='none';">`;
+    }
+
+    function traducirEstado(status) {
+        const estados = { 'scheduled': 'Programado', 'live': 'En Curso', 'completed': 'Finalizado' };
+        return estados[status.toLowerCase()] || status;
+    }
+
+    function traducirRonda(round) {
+        const rondas = { 'round': 'Fase de Grupos', 'r32': 'Dieciseisavos', 'r16': 'Octavos', 'qf': 'Cuartos', 'sf': 'Semifinal', 'final': 'Final' };
+        return rondas[round.toLowerCase()] || round;
+    }
+
+    function cargarDatos() {
+        fetch('/api/datos_tablero')
+            .then(res => res.json())
+            .then(datos => {
+                renderizarPrincipal(datos.principal);
+                renderizarOtros(datos.jugados || [], datos.otros || []);
+
+                const tituloDerecho = document.getElementById('titulo-columna-derecha');
+
+                if (datos.es_fase_grupos) {
+                    tituloDerecho.innerText = 'Posiciones de Grupos';
+                    renderizarGrupos(datos.grupos);
+                } else {
+                    const nombreRonda = datos.partidos_eliminatoria.length > 0 ? traducirRonda(datos.partidos_eliminatoria[0].round) : 'Fase Final';
+                    tituloDerecho.innerText = 'Cruces: ' + nombreRonda;
+                    renderizarEliminatorias(datos.partidos_eliminatoria);
+                }
+            })
+            .catch(err => console.error('Error al cargar:', err));
+    }
+
+    function renderizarPrincipal(partido) {
+        const contenedor = document.getElementById('contenedor-principal');
+        if (!partido) {
+            contenedor.innerHTML = '<div class="hero-match"><p>No hay partidos programados para hoy.</p></div>';
+            return;
+        }
+        const g1 = partido.home_score !== null ? partido.home_score : 0;
+        const g2 = partido.away_score !== null ? partido.away_score : 0;
+        const estado = traducirEstado(partido.status);
+        const infoTiempo = estado === 'Programado'
+            ? `Programado - ${partido.fecha_peru_str} - ${partido.hora_peru}`
+            : estado;
+        const faseText = partido.group_name ? `Grupo ${partido.group_name}` : traducirRonda(partido.round);
+        const faseHeader = partido.group_name ? `<div class="match-phase-header">${faseText}</div>` : '';
+        const sedePrincipal = [partido.stadium, partido.stadium_city, partido.stadium_country].filter(Boolean).join(' - ');
+
+        contenedor.innerHTML = `
+            <section class="hero-match">
+                ${faseHeader}
+                <div class="match-status">${infoTiempo}</div>
+                <div class="scoreboard">
+                    <div class="team team-principal">
+                        <div class="team-main-identity">
+                            ${banderaHtml(partido.home_team)}
+                            <h2>${partido.home_team || 'Por Clasificar'}</h2>
+                        </div>
+                    </div>
+                    <div class="score-center">
+                        <div class="score"><span>${g1}</span><span class="divider">-</span><span>${g2}</span></div>
+                        <div class="tournament-badge">MUNDIAL 2026</div>
+                    </div>
+                    <div class="team team-principal">
+                        <div class="team-main-identity">
+                            ${banderaHtml(partido.away_team)}
+                            <h2>${partido.away_team || 'Por Clasificar'}</h2>
+                        </div>
+                    </div>
+                </div>
+                <div class="stadium-info">${sedePrincipal || 'Sede por confirmar'}</div>
+            </section>
+        `;
+    }
+
+    function renderizarOtros(partidosJugados, partidosPorJugar) {
+        const contenedorJugados = document.getElementById('contenedor-jugados');
+        const contenedorPorJugar = document.getElementById('contenedor-otros');
+        const layout = document.getElementById('other-columns-layout');
+        const columnaJugados = document.getElementById('columna-jugados');
+        let htmlJugados = '';
+        let htmlPorJugar = '';
+
+        function construirCard(p, esJugado) {
+            const infoFase = p.group_name ? `Grupo ${p.group_name}` : traducirRonda(p.round);
+            const fechaMostrar = p.fecha_peru_str || '';
+            const sede = [p.stadium, p.stadium_city, p.stadium_country].filter(Boolean).join(' - ');
+            return `
+                <div class="match-card match-card-next">
+                    <div class="card-header card-header-next">
+                        <span class="fase-tag">${infoFase}</span>
+                        <span class="fecha-hora-tag">${fechaMostrar} - ${p.hora_peru}</span>
+                    </div>
+                    <div class="mini-scoreboard">
+                        <div class="mini-team">
+                            <div class="mini-team-identity">
+                                ${banderaHtml(p.home_team)}
+                                <span class="mini-team-name">${p.home_team}</span>
+                            </div>
+                        </div>
+                        <div class="mini-vs">${esJugado ? 'FIN' : 'VS'}</div>
+                        <div class="mini-team">
+                            <div class="mini-team-identity">
+                                ${banderaHtml(p.away_team)}
+                                <span class="mini-team-name">${p.away_team}</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="match-venue">${sede || 'Sede por confirmar'}</div>
+                </div>
+            `;
+        }
+
+        function agruparPorFecha(partidos) {
+            const grupos = {};
+            partidos.forEach(p => {
+                const key = p.fecha_peru_key || (p.kickoff_utc ? p.kickoff_utc.slice(0, 10) : 'sin-fecha');
+                if (!grupos[key]) {
+                    grupos[key] = {
+                        fechaLabel: p.fecha_peru_str || key,
+                        partidos: []
+                    };
+                }
+                grupos[key].partidos.push(p);
+            });
+            return grupos;
+        }
+
+        function renderizarGruposFecha(partidos, esJugado, descendente, ocultarPrimeraFecha) {
+            if (!partidos.length) {
+                return '';
+            }
+
+            const grupos = agruparPorFecha(partidos);
+            const fechas = Object.keys(grupos).sort((a, b) => descendente ? b.localeCompare(a) : a.localeCompare(b));
+            let html = '';
+
+            fechas.forEach((fecha, idx) => {
+                const grupo = grupos[fecha];
+                const partidosOrdenados = grupo.partidos.sort((a, b) => (a.kickoff_utc || '').localeCompare(b.kickoff_utc || ''));
+                if (!(ocultarPrimeraFecha && idx === 0)) {
+                    html += `<div class="date-separator">${grupo.fechaLabel}</div>`;
+                }
+                partidosOrdenados.forEach(p => {
+                    html += construirCard(p, esJugado);
+                });
+            });
+
+            return html;
+        }
+
+        htmlJugados = renderizarGruposFecha(partidosJugados, true, true, false);
+        htmlPorJugar = renderizarGruposFecha(partidosPorJugar, false, false, true);
+
+        if (partidosJugados.length > 0) {
+            layout.classList.remove('solo-resto');
+            columnaJugados.classList.remove('hidden');
+            contenedorJugados.innerHTML = htmlJugados;
+        } else {
+            layout.classList.add('solo-resto');
+            columnaJugados.classList.add('hidden');
+            contenedorJugados.innerHTML = '';
+        }
+
+        contenedorPorJugar.innerHTML = htmlPorJugar || '<div class="empty-column">No hay más partidos por jugar.</div>';
+    }
+
+    function renderizarGrupos(grupos) {
+        const contenedor = document.getElementById('contenedor-grupos');
+        let html = '';
+        grupos.forEach(grupo => {
+            let filas = '';
+            grupo.equipos.forEach((eq) => {
+                filas += `<tr><td class="team-cell-name">${banderaHtml(eq.nombre)}${eq.nombre}</td><td>${eq.pj}</td><td>${eq.dg}</td><td>${eq.pts}</td></tr>`;
+            });
+            html += `
+                <div class="tabla-grupo-container">
+                    <div class="titulo-grupo">${grupo.nombre}</div>
+                    <table class="tabla-grupo">
+                        <thead>
+                            <tr><th>Equipo</th><th>PJ</th><th>DG</th><th>Pts</th></tr>
+                        </thead>
+                    <tbody>${filas}</tbody></table>
+                </div>
+            `;
+        });
+        contenedor.innerHTML = html;
+    }
+
+    function renderizarEliminatorias(partidos) {
+        const contenedor = document.getElementById('contenedor-grupos');
+        let html = '';
+        partidos.forEach(p => {
+            const g1 = p.home_score !== null ? p.home_score : 0;
+            const g2 = p.away_score !== null ? p.away_score : 0;
+            html += `
+                <div class="match-card knockout-card">
+                    <div class="card-status">${p.hora_peru || ''}</div>
+                    <div class="card-teams knockout-teams">
+                        <span class="team-name knockout-home">${banderaHtml(p.home_team)}${p.home_team || 'TBD'}</span>
+                        <span class="card-score">${g1} : ${g2}</span>
+                        <span class="team-name knockout-away">${banderaHtml(p.away_team)}${p.away_team || 'TBD'}</span>
+                    </div>
+                </div>
+            `;
+        });
+        contenedor.innerHTML = html;
+    }
+</script>

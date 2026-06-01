@@ -5,6 +5,8 @@ import json
 import os
 import requests
 import polars as pl
+import csv
+from io import StringIO
 
 app = Flask(__name__)
 
@@ -64,7 +66,7 @@ TRADUCCION_PAISES = {
     "Austria": "Austria",
     "Jordan": "Jordania",
     "Portugal": "Portugal",
-    "Congo DR": "República Democrática del Congo",
+    "Congo DR": "RD del Congo",
     "Uzbekistan": "Uzbekistán",
     "Colombia": "Colombia",
     "England": "Inglaterra",
@@ -79,12 +81,56 @@ MESES = {
     9: "septiembre", 10: "octubre", 11: "noviembre", 12: "diciembre"
 }
 ruta_ranking = os.path.join(os.path.dirname(__file__), 'ranking_usuarios.json')
-
+GOOGLE_SHEET_RANKING_CSV_URL = os.getenv(
+    "GOOGLE_SHEET_RANKING_CSV_URL",
+    "https://docs.google.com/spreadsheets/d/1A4fLL4bUPuu61HNzB8t3rm6o8RVUSJ89s2syxaQcacY/export?format=csv&gid=0"
+)
 def traducir_equipo(nombre):
     return TRADUCCION_PAISES.get(nombre, nombre)
 
 
+def _leer_ranking_desde_google_sheet():
+    response = requests.get(GOOGLE_SHEET_RANKING_CSV_URL, timeout=20, verify=False)
+    response.raise_for_status()
+
+    contenido = response.text.lstrip("\ufeff")
+    reader = csv.DictReader(StringIO(contenido))
+    ranking = []
+
+    for fila in reader:
+        nombre = (fila.get("usuario") or "").strip()
+        if not nombre:
+            continue
+
+        try:
+            aciertos = int(float((fila.get("aciertos") or "0").strip()))
+        except Exception:
+            aciertos = 0
+
+        try:
+            puntos = int(float((fila.get("puntos") or "0").strip()))
+        except Exception:
+            puntos = 0
+
+        ranking.append({
+            "nombre": nombre,
+            "aciertos": aciertos,
+            "puntos": puntos
+        })
+
+    ranking.sort(key=lambda x: (x.get("puntos", 0), x.get("nombre", "")), reverse=True)
+    for idx, usuario in enumerate(ranking, start=1):
+        usuario["posicion"] = idx
+
+    return {"ranking": ranking}
+
+
 def obtener_ranking_usuarios():
+    try:
+        return _leer_ranking_desde_google_sheet()
+    except Exception as e:
+        print(f"Error cargando ranking desde Google Sheet, usando JSON local: {e}")
+
     try:
         with open(ruta_ranking, 'r', encoding='utf-8') as f:
             registros_apuestas = json.load(f)
@@ -244,7 +290,8 @@ def obtener_datos_tablero():
             print(f"Error de conexión: {e}")
             resultados_en_vivo = []
 
-        fecha_hoy_str = datetime.now(timezone(timedelta(hours=-5))).strftime("%Y-%m-%d")
+        fecha_hoy_dt = datetime.now(timezone(timedelta(hours=-5)))
+        fecha_hoy_str = fecha_hoy_dt.strftime("%Y-%m-%d")
         
         diccionario_resultados = {r["id"]: r for r in resultados_en_vivo}
         
@@ -265,18 +312,37 @@ def obtener_datos_tablero():
                 
                 p["fecha_peru_str"] = f"{fecha_peru_dt.day} de {MESES[fecha_peru_dt.month]}"
                 p["hora_peru"] = fecha_peru_dt.strftime("%H:%M")
+                p["fecha_peru_key"] = fecha_peru_dt.strftime("%Y-%m-%d")
 
-        para_mostrar = [p for p in FIXTURE_ESTATICO if p.get("kickoff_utc", "")[:10] >= fecha_hoy_str]
-        
-        para_mostrar.sort(key=lambda x: x.get("kickoff_utc", ""))
-        
-        if para_mostrar:
-            principal = para_mostrar[0]
-            otros = para_mostrar[1:4] 
+        partidos_ordenados = sorted(FIXTURE_ESTATICO, key=lambda x: x.get("kickoff_utc", ""))
+        no_completados = [p for p in partidos_ordenados if p.get("status") != "completed"]
+
+        if no_completados:
+            principal = no_completados[0]
         else:
-            FIXTURE_ESTATICO.sort(key=lambda x: x.get("kickoff_utc", ""), reverse=True)
-            principal = FIXTURE_ESTATICO[0]
-            otros = FIXTURE_ESTATICO[1:4]
+            principal = partidos_ordenados[-1] if partidos_ordenados else None
+
+        fecha_base_str = principal.get("fecha_peru_key") if principal else fecha_hoy_str
+        if not fecha_base_str and principal:
+            fecha_base_str = principal.get("kickoff_utc", "")[:10]
+        try:
+            fecha_base_dt = datetime.strptime(fecha_base_str, "%Y-%m-%d")
+        except Exception:
+            fecha_base_dt = fecha_hoy_dt.replace(tzinfo=None)
+        fecha_siguiente_str = (fecha_base_dt + timedelta(days=1)).strftime("%Y-%m-%d")
+        fecha_anterior_str = (fecha_base_dt - timedelta(days=1)).strftime("%Y-%m-%d")
+
+        ventana_resto = {fecha_base_str, fecha_siguiente_str}
+        otros = [
+            p for p in no_completados
+            if (not principal or p.get("id") != principal.get("id"))
+            and p.get("fecha_peru_key", p.get("kickoff_utc", "")[:10]) in ventana_resto
+        ]
+        jugados = [
+            p for p in partidos_ordenados
+            if p.get("status") == "completed"
+            and p.get("fecha_peru_key", p.get("kickoff_utc", "")[:10]) in {fecha_anterior_str, fecha_base_str}
+        ]
 
         guardar_datos_excel(FIXTURE_ESTATICO)
 
@@ -299,6 +365,7 @@ def obtener_datos_tablero():
         cache_tablero = {
             "principal": principal,
             "otros": otros,
+            "jugados": jugados,
             "grupos": tablas_grupos,
             "es_fase_grupos": es_fase_grupos,
             "partidos_eliminatoria": partidos_eliminatoria 

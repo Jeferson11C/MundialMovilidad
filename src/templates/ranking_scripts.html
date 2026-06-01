@@ -1,0 +1,36 @@
+<script>
+    function cargarRanking() {
+        fetch('/api/ranking')
+            .then(res => res.json())
+            .then(datos => renderizarRanking(datos.ranking || []))
+            .catch(err => console.error('Error al cargar ranking:', err));
+    }
+
+    function renderizarRanking(ranking) {
+        const podio = document.getElementById('ranking-podio');
+        const body = document.getElementById('ranking-body');
+        const top3 = ranking.slice(0, 3);
+        const resto = ranking;
+
+        podio.innerHTML = top3.map((u, index) => {
+            const medalla = index === 0 ? '1er lugar' : (index === 1 ? '2do lugar' : '3er lugar');
+            return `
+                <div class="podium-card podium-${index + 1}">
+                    <div class="podium-rank">${medalla}</div>
+                    <h4>${u.nombre}</h4>
+                    <p>${u.puntos} pts</p>
+                    <span>${u.aciertos} aciertos</span>
+                </div>
+            `;
+        }).join('');
+
+        body.innerHTML = resto.map(u => `
+            <tr>
+                <td>${u.posicion}</td>
+                <td class="user-name">${u.nombre}</td>
+                <td>${u.aciertos}</td>
+                <td class="points">${u.puntos}</td>
+            </tr>
+        `).join('');
+    }
+</script>
