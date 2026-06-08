@@ -93,7 +93,7 @@ def _leer_ranking_desde_google_sheet():
     response = requests.get(GOOGLE_SHEET_RANKING_CSV_URL, timeout=20, verify=False)
     response.raise_for_status()
 
-    contenido = response.text.lstrip("\ufeff")
+    contenido = response.content.decode("utf-8-sig")
     reader = csv.DictReader(StringIO(contenido))
     ranking = []
 
@@ -118,7 +118,11 @@ def _leer_ranking_desde_google_sheet():
             "puntos": puntos
         })
 
-    ranking.sort(key=lambda x: (x.get("puntos", 0), x.get("nombre", "")), reverse=True)
+    ranking.sort(key=lambda x: (
+        0 if x.get("puntos", 0) > 0 else 1,
+        -x.get("puntos", 0),
+        x.get("nombre", "").casefold()
+    ))
     for idx, usuario in enumerate(ranking, start=1):
         usuario["posicion"] = idx
 
@@ -159,9 +163,12 @@ def obtener_ranking_usuarios():
             usuarios_consolidados[usuario]["aciertos"] += 1
 
     ranking_ordenado = sorted(
-        list(usuarios_consolidados.values()), 
-        key=lambda x: (x.get("puntos", 0), x.get("nombre", "")), 
-        reverse=True
+        list(usuarios_consolidados.values()),
+        key=lambda x: (
+            0 if x.get("puntos", 0) > 0 else 1,
+            -x.get("puntos", 0),
+            x.get("nombre", "").casefold()
+        )
     )
 
     for idx, usuario in enumerate(ranking_ordenado, start=1):
@@ -378,6 +385,12 @@ def obtener_datos_tablero():
 def home():
     return render_template('index.html')
 
+
+@app.route('/ranking')
+def ranking():
+    return render_template('ranking.html')
+
+
 @app.route('/api/datos_tablero')
 def api_tablero():
     return jsonify(obtener_datos_tablero())
@@ -385,7 +398,9 @@ def api_tablero():
 
 @app.route('/api/ranking')
 def api_ranking():
-    return jsonify(obtener_ranking_usuarios())
+    response = jsonify(obtener_ranking_usuarios())
+    response.headers["Cache-Control"] = "no-store"
+    return response
 
 if __name__ == '__main__':
     app.run(debug=True)

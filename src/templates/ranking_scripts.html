@@ -7,30 +7,28 @@
     }
 
     function renderizarRanking(ranking) {
-        const podio = document.getElementById('ranking-podio');
         const body = document.getElementById('ranking-body');
-        const top3 = ranking.slice(0, 3);
         const resto = ranking;
 
-        podio.innerHTML = top3.map((u, index) => {
-            const medalla = index === 0 ? '1er lugar' : (index === 1 ? '2do lugar' : '3er lugar');
-            return `
-                <div class="podium-card podium-${index + 1}">
-                    <div class="podium-rank">${medalla}</div>
-                    <h4>${u.nombre}</h4>
-                    <p>${u.puntos} pts</p>
-                    <span>${u.aciertos} aciertos</span>
-                </div>
-            `;
-        }).join('');
+        body.innerHTML = resto.length ? resto.map((u, index) => {
+            const esTopActual = index < 3 && Number(u.puntos || 0) > 0;
+            const insignias = [
+                { texto: '1er actual', clase: 'rank-1' },
+                { texto: '2do actual', clase: 'rank-2' },
+                { texto: '3er actual', clase: 'rank-3' }
+            ];
+            const insignia = esTopActual ? insignias[index] : null;
 
-        body.innerHTML = resto.map(u => `
-            <tr>
+            return `
+            <tr class="${esTopActual ? `top-row top-${index + 1}` : ''}">
                 <td>${u.posicion}</td>
                 <td class="user-name">${u.nombre}</td>
-                <td>${u.aciertos}</td>
-                <td class="points">${u.puntos}</td>
+                <td class="points">
+                    <span class="points-value">${u.puntos}</span>
+                    ${insignia ? `<span class="rank-badge ${insignia.clase}" title="${insignia.texto}" aria-label="${insignia.texto}">${insignia.texto}</span>` : ''}
+                </td>
             </tr>
-        `).join('');
+        `;
+        }).join('') : '<tr><td colspan="3" class="empty-ranking">Todavia no hay participantes en el ranking.</td></tr>';
     }
 </script>
