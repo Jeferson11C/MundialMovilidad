@@ -100,7 +100,9 @@
             return;
         }
         const estado = traducirEstado(partido.status);
-        const mostrarMarcador = partido.status && partido.status.toLowerCase() !== 'scheduled';
+        const estadoKey = partido.status ? partido.status.toLowerCase() : '';
+        const mostrarMarcador = estadoKey !== 'scheduled';
+        const estadoClase = estadoKey ? ` status-${estadoKey}` : '';
         const g1 = partido.home_score !== null ? partido.home_score : 0;
         const g2 = partido.away_score !== null ? partido.away_score : 0;
         const marcadorHtml = mostrarMarcador
@@ -116,7 +118,7 @@
         contenedor.innerHTML = `
             <section class="hero-match">
                 ${faseHeader}
-                <div class="match-status">${infoTiempo}</div>
+                <div class="match-status${estadoClase}">${infoTiempo}</div>
                 <div class="scoreboard">
                     <div class="team team-principal">
                         <div class="team-main-identity">

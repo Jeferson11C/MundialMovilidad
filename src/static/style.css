@@ -191,6 +191,16 @@ body {
     text-transform: uppercase;
 }
 
+.match-status.status-live {
+    background-color: #dcfce7;
+    color: #166534;
+}
+
+.match-status.status-completed {
+    background-color: #e8eef4;
+    color: var(--text-muted);
+}
+
 .match-phase-header {
     color: var(--color-teal);
     font-size: 0.9rem;
