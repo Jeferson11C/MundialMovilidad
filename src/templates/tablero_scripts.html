@@ -154,6 +154,10 @@
             const infoFase = p.group_name ? `Grupo ${p.group_name}` : traducirRonda(p.round);
             const fechaMostrar = p.fecha_peru_str || '';
             const sede = [p.stadium, p.stadium_city, p.stadium_country].filter(Boolean).join(' - ');
+            const marcadorFinal = p.home_score !== null && p.away_score !== null
+                ? `<span class="mini-final-label">FIN</span><strong class="mini-score-pill">${p.home_score} - ${p.away_score}</strong>`
+                : '<span>FIN</span>';
+            const centroPartido = esJugado ? marcadorFinal : 'VS';
             return `
                 <div class="match-card match-card-next">
                     <div class="card-header card-header-next">
@@ -167,7 +171,7 @@
                                 <span class="mini-team-name">${p.home_team}</span>
                             </div>
                         </div>
-                        <div class="mini-vs">${esJugado ? 'FIN' : 'VS'}</div>
+                        <div class="${esJugado ? 'mini-final-score' : 'mini-vs'}">${centroPartido}</div>
                         <div class="mini-team">
                             <div class="mini-team-identity">
                                 ${banderaHtml(p.away_team)}
