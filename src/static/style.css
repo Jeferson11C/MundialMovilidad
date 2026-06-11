@@ -276,6 +276,11 @@ body {
     font-weight: 400;
 }
 
+.score .vs-label {
+    font-size: 2rem;
+    letter-spacing: 0;
+}
+
 .tournament-badge {
     background-color: var(--color-coral);
     color: var(--text-on-accent);

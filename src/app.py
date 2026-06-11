@@ -1,6 +1,5 @@
 from flask import Flask, render_template, jsonify
 from datetime import datetime, timedelta, timezone
-import time
 import json
 import os
 import requests
@@ -21,8 +20,9 @@ except FileNotFoundError:
     FIXTURE_ESTATICO = []
 
 cache_tablero = {}
-ultima_actualizacion = 0
-TIEMPO_CACHE = 10800
+ultima_actualizacion_slot = None
+PERU_TZ = timezone(timedelta(hours=-5))
+HORA_INICIO_ACTUALIZACION = 11
 
 TRADUCCION_PAISES = {
     "Mexico": "México",
@@ -87,6 +87,13 @@ GOOGLE_SHEET_RANKING_CSV_URL = os.getenv(
 )
 def traducir_equipo(nombre):
     return TRADUCCION_PAISES.get(nombre, nombre)
+
+
+def obtener_slot_actualizacion_peru(ahora_peru=None):
+    ahora_peru = ahora_peru or datetime.now(PERU_TZ)
+    if ahora_peru.hour < HORA_INICIO_ACTUALIZACION:
+        return None
+    return ahora_peru.replace(minute=0, second=0, microsecond=0).isoformat()
 
 
 def _leer_ranking_desde_google_sheet():
@@ -190,6 +197,35 @@ def enviar_a_google_sheets(df_final):
     except Exception as e:
         print("Error al enviar a Google Sheets:", e)
 
+
+def guardar_fixture_json(partidos):
+    traducciones_invertidas = {v: k for k, v in TRADUCCION_PAISES.items()}
+    campos_derivados = {"fecha_peru_str", "hora_peru", "fecha_peru_key"}
+    partidos_json = []
+
+    for partido in partidos:
+        partido_limpio = {
+            clave: valor
+            for clave, valor in partido.items()
+            if clave not in campos_derivados
+        }
+        partido_limpio["home_team"] = traducciones_invertidas.get(
+            partido_limpio.get("home_team"),
+            partido_limpio.get("home_team")
+        )
+        partido_limpio["away_team"] = traducciones_invertidas.get(
+            partido_limpio.get("away_team"),
+            partido_limpio.get("away_team")
+        )
+        partidos_json.append(partido_limpio)
+
+    try:
+        with open(ruta_json, 'w', encoding='utf-8') as f:
+            json.dump(partidos_json, f, ensure_ascii=False, indent=2)
+    except Exception as e:
+        print(f"Error guardando fixture JSON: {e}")
+
+
 def guardar_datos_excel(partidos):
     df = pl.DataFrame(partidos)
     df_final = df.with_columns([
@@ -281,11 +317,16 @@ def calcular_posiciones_grupos(todos_los_partidos):
     return grupos_ordenados
 
 def obtener_datos_tablero():
-    global cache_tablero, ultima_actualizacion
-    ahora = time.time()
+    global cache_tablero, ultima_actualizacion_slot
+    fecha_hoy_dt = datetime.now(PERU_TZ)
+    slot_actualizacion = obtener_slot_actualizacion_peru(fecha_hoy_dt)
+    debe_sincronizar = (
+        not cache_tablero
+        or (slot_actualizacion is not None and slot_actualizacion != ultima_actualizacion_slot)
+    )
     
-    if not cache_tablero or (ahora - ultima_actualizacion > TIEMPO_CACHE):
-        print("Sincronizando marcadores con la API externa...")
+    if debe_sincronizar:
+        print(f"Sincronizando marcadores con la API externa... slot Peru: {slot_actualizacion or 'carga inicial'}")
         
         url_api = "https://api.wc2026api.com/matches"
         token_real = "wc26_4TUutBnL1Qgocn3WrVSmmQ"
@@ -297,7 +338,6 @@ def obtener_datos_tablero():
             print(f"Error de conexión: {e}")
             resultados_en_vivo = []
 
-        fecha_hoy_dt = datetime.now(timezone(timedelta(hours=-5)))
         fecha_hoy_str = fecha_hoy_dt.strftime("%Y-%m-%d")
         
         diccionario_resultados = {r["id"]: r for r in resultados_en_vivo}
@@ -306,8 +346,17 @@ def obtener_datos_tablero():
             id_p = p.get("id")
             if id_p in diccionario_resultados:
                 datos = diccionario_resultados[id_p]
-                p.update({"home_score": datos.get("home_score"), "away_score": datos.get("away_score"), "status": datos.get("status")})
-            
+                p.update({
+                    "home_score": datos.get("home_score"),
+                    "away_score": datos.get("away_score"),
+                    "home_pen": datos.get("home_pen"),
+                    "away_pen": datos.get("away_pen"),
+                    "status": datos.get("status")
+                })
+
+        guardar_fixture_json(FIXTURE_ESTATICO)
+
+        for p in FIXTURE_ESTATICO:
             p["home_team"] = traducir_equipo(p["home_team"])
             p["away_team"] = traducir_equipo(p["away_team"])
 
@@ -377,7 +426,7 @@ def obtener_datos_tablero():
             "es_fase_grupos": es_fase_grupos,
             "partidos_eliminatoria": partidos_eliminatoria 
         }
-        ultima_actualizacion = ahora
+        ultima_actualizacion_slot = slot_actualizacion
         
     return cache_tablero
 

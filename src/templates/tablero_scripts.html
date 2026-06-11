@@ -99,9 +99,13 @@
             contenedor.innerHTML = '<div class="hero-match"><p>No hay partidos programados para hoy.</p></div>';
             return;
         }
+        const estado = traducirEstado(partido.status);
+        const mostrarMarcador = partido.status && partido.status.toLowerCase() !== 'scheduled';
         const g1 = partido.home_score !== null ? partido.home_score : 0;
         const g2 = partido.away_score !== null ? partido.away_score : 0;
-        const estado = traducirEstado(partido.status);
+        const marcadorHtml = mostrarMarcador
+            ? `<span>${g1}</span><span class="divider">-</span><span>${g2}</span>`
+            : `<span class="vs-label">VS</span>`;
         const infoTiempo = estado === 'Programado'
             ? `Programado - ${partido.fecha_peru_str} - ${partido.hora_peru}`
             : estado;
@@ -121,7 +125,7 @@
                         </div>
                     </div>
                     <div class="score-center">
-                        <div class="score"><span>${g1}</span><span class="divider">-</span><span>${g2}</span></div>
+                        <div class="score">${marcadorHtml}</div>
                         <div class="tournament-badge">MUNDIAL 2026</div>
                     </div>
                     <div class="team team-principal">
