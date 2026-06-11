@@ -13,9 +13,9 @@
         body.innerHTML = resto.length ? resto.map((u, index) => {
             const esTopActual = index < 3 && Number(u.puntos || 0) > 0;
             const insignias = [
-                { texto: '1er actual', clase: 'rank-1' },
-                { texto: '2do actual', clase: 'rank-2' },
-                { texto: '3er actual', clase: 'rank-3' }
+                { texto: '1ero', clase: 'rank-1' },
+                { texto: '2do', clase: 'rank-2' },
+                { texto: '3ero', clase: 'rank-3' }
             ];
             const insignia = esTopActual ? insignias[index] : null;
 

@@ -17,11 +17,11 @@
     "stadium_city": "Mexico City",
     "stadium_country": "Mexico",
     "kickoff_utc": "2026-06-11T19:00:00.000Z",
-    "home_score": null,
-    "away_score": null,
+    "home_score": 1,
+    "away_score": 0,
     "home_pen": null,
     "away_pen": null,
-    "status": "scheduled"
+    "status": "live"
   },
   {
     "id": 1,
