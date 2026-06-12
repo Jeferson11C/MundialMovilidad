@@ -11,21 +11,12 @@
         const resto = ranking;
 
         body.innerHTML = resto.length ? resto.map((u, index) => {
-            const esTopActual = index < 3 && Number(u.puntos || 0) > 0;
-            const insignias = [
-                { texto: '1ero', clase: 'rank-1' },
-                { texto: '2do', clase: 'rank-2' },
-                { texto: '3ero', clase: 'rank-3' }
-            ];
-            const insignia = esTopActual ? insignias[index] : null;
-
             return `
-            <tr class="${esTopActual ? `top-row top-${index + 1}` : ''}">
+            <tr>
                 <td>${u.posicion}</td>
                 <td class="user-name">${u.nombre}</td>
                 <td class="points">
                     <span class="points-value">${u.puntos}</span>
-                    ${insignia ? `<span class="rank-badge ${insignia.clase}" title="${insignia.texto}" aria-label="${insignia.texto}">${insignia.texto}</span>` : ''}
                 </td>
             </tr>
         `;

@@ -147,6 +147,8 @@
         const contenedorPorJugar = document.getElementById('contenedor-otros');
         const layout = document.getElementById('other-columns-layout');
         const columnaJugados = document.getElementById('columna-jugados');
+        const columnaResto = document.getElementById('columna-resto');
+        const tabsMoviles = document.getElementById('mobile-match-tabs');
         let htmlJugados = '';
         let htmlPorJugar = '';
 
@@ -236,6 +238,51 @@
         }
 
         contenedorPorJugar.innerHTML = htmlPorJugar || '<div class="empty-column">No hay más partidos por jugar.</div>';
+        configurarTabsMovilesPartidos({
+            layout,
+            tabsMoviles,
+            columnaJugados,
+            columnaResto,
+            hayJugados: partidosJugados.length > 0
+        });
+    }
+
+    function configurarTabsMovilesPartidos({ layout, tabsMoviles, columnaJugados, columnaResto, hayJugados }) {
+        if (!layout || !tabsMoviles || !columnaJugados || !columnaResto) {
+            return;
+        }
+
+        const tabs = Array.from(tabsMoviles.querySelectorAll('.mobile-match-tab'));
+        const tabJugados = tabsMoviles.querySelector('[data-target="jugados"]');
+        const tabResto = tabsMoviles.querySelector('[data-target="resto"]');
+
+        tabsMoviles.classList.toggle('hidden', !hayJugados);
+        if (!hayJugados) {
+            layout.classList.remove('mobile-show-jugados', 'mobile-show-resto');
+            return;
+        }
+
+        function activar(target) {
+            tabs.forEach(tab => {
+                const activo = tab.dataset.target === target;
+                tab.classList.toggle('active', activo);
+                tab.setAttribute('aria-selected', activo ? 'true' : 'false');
+            });
+            layout.classList.toggle('mobile-show-jugados', target === 'jugados');
+            layout.classList.toggle('mobile-show-resto', target === 'resto');
+            tabsMoviles.dataset.activeTarget = target;
+        }
+
+        if (!tabsMoviles.dataset.inicializado) {
+            tabs.forEach(tab => {
+                tab.addEventListener('click', () => activar(tab.dataset.target));
+            });
+            tabsMoviles.dataset.inicializado = 'true';
+        }
+
+        tabJugados.disabled = !hayJugados;
+        tabResto.disabled = false;
+        activar(tabsMoviles.dataset.activeTarget || 'resto');
     }
 
     function renderizarGrupos(grupos) {

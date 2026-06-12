@@ -27,6 +27,7 @@ body {
     color: var(--text-main);
     min-height: 100vh;
     margin: 0; 
+    overflow-x: hidden;
 }
 
 .content {
@@ -220,12 +221,14 @@ body {
 
 .team {
     flex: 1;
+    min-width: 0;
 }
 
 .team h2 {
     font-size: 1.8rem;
     color: var(--color-teal);
     font-weight: 800;
+    overflow-wrap: anywhere;
 }
 
 .flag-icon {
@@ -329,6 +332,10 @@ body {
     min-width: 0;
 }
 
+.mobile-match-tabs {
+    display: none;
+}
+
 .subsection-title {
     font-size: 0.74rem;
     text-transform: uppercase;
@@ -427,6 +434,7 @@ body {
     font-weight: 700;
     font-size: 0.95rem;
     line-height: 1.15;
+    overflow-wrap: anywhere;
 }
 
 .mini-vs {
@@ -706,68 +714,9 @@ body {
     flex-wrap: wrap;
 }
 
-.ranking-table .top-row td {
-    border-top-color: #d8e7ee;
-}
-
-.ranking-table .top-row .user-name {
-    color: #062245;
-}
-
-.ranking-table .top-row .points {
-    color: var(--color-teal);
-}
-
-.ranking-table .top-1 td {
-    background-color: #fff1ee;
-}
-
-.ranking-table .top-2 td {
-    background-color: #edf5ff;
-}
-
-.ranking-table .top-3 td {
-    background-color: #edf8ef;
-}
-
 .points-value {
     min-width: 18px;
     text-align: right;
-}
-
-.rank-badge {
-    display: inline-flex;
-    align-items: center;
-    gap: 6px;
-    padding: 5px 10px;
-    border-radius: 999px;
-    color: #ffffff;
-    font-size: 0.72rem;
-    font-weight: 800;
-    line-height: 1;
-    white-space: nowrap;
-    box-shadow: 0 3px 8px rgba(6, 34, 69, 0.12);
-}
-
-.rank-badge::before {
-    content: "";
-    width: 7px;
-    height: 7px;
-    border-radius: 50%;
-    background-color: rgba(255,255,255,0.9);
-    box-shadow: 0 0 0 2px rgba(255,255,255,0.22);
-}
-
-.rank-badge.rank-1 {
-    background-color: #f34b25;
-}
-
-.rank-badge.rank-2 {
-    background-color: #0b4ea2;
-}
-
-.rank-badge.rank-3 {
-    background-color: #1f8f4d;
 }
 
 .empty-ranking {
@@ -778,6 +727,7 @@ body {
 @media (max-width: 1000px) {
     .dashboard-grid {
         grid-template-columns: 1fr;
+        padding: 18px;
     }
 
     .scroll-grupos {
@@ -811,5 +761,340 @@ body {
 
     .mini-team-name {
         font-size: 0.88rem;
+    }
+}
+
+@media (max-width: 600px) {
+    .top-nav {
+        align-items: stretch;
+        padding: 10px 12px;
+        gap: 10px;
+    }
+
+    .logo-seccion {
+        justify-content: flex-start;
+        gap: 10px;
+        width: 100%;
+    }
+
+    .logo-img {
+        height: 24px;
+    }
+
+    .divisor-vertical {
+        height: 24px;
+    }
+
+    .logo-seccion h2 {
+        font-size: 0.92rem;
+        line-height: 1.15;
+        max-width: 190px;
+    }
+
+    .nav-acciones {
+        display: grid;
+        grid-template-columns: minmax(0, 1fr) auto;
+        gap: 8px;
+        width: 100%;
+        align-items: stretch;
+    }
+
+    .tabs {
+        width: 100%;
+        min-width: 0;
+    }
+
+    .tabs span,
+    .tabs a {
+        flex: 1;
+        min-width: 0;
+        padding: 8px 9px;
+        font-size: 0.68rem;
+        line-height: 1.15;
+        text-align: center;
+        white-space: normal;
+    }
+
+    .btn-apuesta {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        width: 120px;
+        padding: 8px 10px;
+        font-size: 0.68rem;
+        line-height: 1.15;
+        text-align: center;
+    }
+
+    .dashboard-grid,
+    .ranking-view {
+        padding: 14px 10px;
+    }
+
+    .hero-match {
+        border-radius: 10px;
+        padding: 18px 12px;
+    }
+
+    .match-phase-header {
+        font-size: 0.74rem;
+        letter-spacing: 0.7px;
+    }
+
+    .match-status {
+        max-width: 100%;
+        font-size: 0.62rem;
+        padding: 5px 10px;
+        line-height: 1.2;
+    }
+
+    .scoreboard {
+        display: grid;
+        grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
+        gap: 8px;
+        margin: 22px 0 18px;
+    }
+
+    .team-principal .team-main-identity {
+        gap: 7px;
+    }
+
+    .team-principal .team-main-identity .flag-icon {
+        width: 32px;
+        height: 23px;
+        border-radius: 4px;
+    }
+
+    .team-principal h2 {
+        font-size: 1.08rem;
+        line-height: 1.05;
+    }
+
+    .score-center {
+        gap: 7px;
+    }
+
+    .score {
+        font-size: 1.75rem;
+        gap: 7px;
+    }
+
+    .score .vs-label {
+        font-size: 1.45rem;
+    }
+
+    .tournament-badge {
+        font-size: 0.55rem;
+        padding: 4px 8px;
+        letter-spacing: 0.6px;
+    }
+
+    .stadium-info {
+        font-size: 0.66rem;
+        line-height: 1.3;
+    }
+
+    .section-title,
+    .subsection-title-orange {
+        font-size: 0.68rem;
+        letter-spacing: 1px;
+        padding: 8px 10px;
+    }
+
+    .other-columns {
+        display: block;
+    }
+
+    .mobile-match-tabs {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 8px;
+        margin: 8px 0 12px;
+    }
+
+    .mobile-match-tab {
+        border: 1px solid var(--color-coral);
+        background-color: #ffffff;
+        color: var(--color-coral);
+        border-radius: 6px;
+        cursor: pointer;
+        font-size: 0.68rem;
+        font-weight: 800;
+        letter-spacing: 0.5px;
+        line-height: 1.15;
+        min-height: 38px;
+        padding: 8px 6px;
+        text-align: center;
+        text-transform: uppercase;
+    }
+
+    .mobile-match-tab.active {
+        background-color: var(--color-coral);
+        color: #ffffff;
+    }
+
+    .mobile-match-tab:disabled {
+        cursor: not-allowed;
+        opacity: 0.45;
+    }
+
+    .other-columns.mobile-show-resto #columna-jugados,
+    .other-columns.mobile-show-jugados #columna-resto {
+        display: none;
+    }
+
+    .other-columns.mobile-show-resto #columna-resto,
+    .other-columns.mobile-show-jugados #columna-jugados {
+        display: block;
+    }
+
+    .other-columns.mobile-show-resto #columna-resto .subsection-title-orange,
+    .other-columns.mobile-show-jugados #columna-jugados .subsection-title-orange {
+        display: none;
+    }
+
+    .date-separator {
+        font-size: 0.68rem;
+        padding: 6px 8px;
+    }
+
+    .match-card,
+    .match-card-next {
+        padding: 10px 10px;
+    }
+
+    .card-header {
+        gap: 8px;
+        font-size: 0.64rem;
+    }
+
+    .fase-tag,
+    .fecha-hora-tag {
+        min-width: 0;
+    }
+
+    .fecha-hora-tag {
+        text-align: right;
+    }
+
+    .mini-scoreboard {
+        grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
+        gap: 6px;
+    }
+
+    .mini-team-identity .flag-icon {
+        width: 24px;
+        height: 17px;
+    }
+
+    .mini-team-name {
+        font-size: 0.72rem;
+        line-height: 1.1;
+    }
+
+    .mini-vs {
+        font-size: 0.78rem;
+        padding: 4px 7px;
+    }
+
+    .mini-final-label {
+        font-size: 0.58rem;
+    }
+
+    .mini-score-pill {
+        font-size: 0.76rem;
+        padding: 4px 8px;
+    }
+
+    .match-venue {
+        font-size: 0.62rem;
+    }
+
+    .ranking-tabla-wrap {
+        max-width: 100%;
+        overflow-x: hidden;
+    }
+
+    .ranking-table {
+        table-layout: fixed;
+        font-size: 0.76rem;
+    }
+
+    .ranking-table th,
+    .ranking-table td {
+        padding: 10px 8px;
+    }
+
+    .ranking-table th:first-child,
+    .ranking-table td:first-child {
+        width: 58px;
+    }
+
+    .ranking-table th:last-child,
+    .ranking-table td:last-child {
+        width: 72px;
+    }
+
+    .ranking-table .user-name {
+        font-size: 0.75rem;
+        line-height: 1.2;
+        overflow-wrap: anywhere;
+    }
+}
+
+@media (max-width: 420px) {
+    .top-nav {
+        padding: 9px 8px;
+    }
+
+    .logo-seccion h2 {
+        font-size: 0.84rem;
+        max-width: 165px;
+    }
+
+    .nav-acciones {
+        gap: 6px;
+    }
+
+    .btn-apuesta {
+        width: 112px;
+        padding: 8px 8px;
+        font-size: 0.63rem;
+    }
+
+    .tabs span,
+    .tabs a {
+        padding: 7px 7px;
+        font-size: 0.62rem;
+    }
+
+    .dashboard-grid,
+    .ranking-view {
+        padding: 12px 8px;
+    }
+
+    .hero-match {
+        padding: 16px 10px;
+    }
+
+    .team-principal h2 {
+        font-size: 1rem;
+    }
+
+    .score {
+        font-size: 1.55rem;
+    }
+
+    .score .vs-label {
+        font-size: 1.25rem;
+    }
+
+    .tournament-badge {
+        font-size: 0.5rem;
+        padding: 4px 7px;
+    }
+
+    .mini-team-name {
+        font-size: 0.68rem;
     }
 }
