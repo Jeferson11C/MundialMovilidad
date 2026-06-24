@@ -378,6 +378,15 @@ def obtener_datos_tablero():
         else:
             principal = partidos_ordenados[-1] if partidos_ordenados else None
 
+        principal_fecha_key = principal.get("fecha_peru_key", principal.get("kickoff_utc", "")[:10]) if principal else None
+        principal_hora = principal.get("hora_peru") if principal else None
+        principales = [
+            p for p in no_completados
+            if p.get("fecha_peru_key", p.get("kickoff_utc", "")[:10]) == principal_fecha_key
+            and p.get("hora_peru") == principal_hora
+        ] if principal else []
+        ids_principales = {p.get("id") for p in principales}
+
         fecha_base_str = principal.get("fecha_peru_key") if principal else fecha_hoy_str
         if not fecha_base_str and principal:
             fecha_base_str = principal.get("kickoff_utc", "")[:10]
@@ -391,7 +400,7 @@ def obtener_datos_tablero():
         ventana_resto = {fecha_base_str, fecha_siguiente_str}
         otros = [
             p for p in no_completados
-            if (not principal or p.get("id") != principal.get("id"))
+            if p.get("id") not in ids_principales
             and p.get("fecha_peru_key", p.get("kickoff_utc", "")[:10]) in ventana_resto
         ]
         jugados = [
@@ -420,6 +429,7 @@ def obtener_datos_tablero():
         
         cache_tablero = {
             "principal": principal,
+            "principales": principales,
             "otros": otros,
             "jugados": jugados,
             "grupos": tablas_grupos,

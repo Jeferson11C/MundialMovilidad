@@ -62,6 +62,17 @@
         return `<img src="https://media.api-sports.io/flags/${code}.svg" alt="${nombrePais}" class="flag-icon" onerror="this.style.display='none';">`;
     }
 
+    function claseNombreEquipo(nombrePais) {
+        const largo = (nombrePais || '').length;
+        if (largo >= 18) {
+            return ' team-name-very-long';
+        }
+        if (largo >= 12) {
+            return ' team-name-long';
+        }
+        return '';
+    }
+
     function traducirEstado(status) {
         const estados = { 'scheduled': 'Programado', 'live': 'En Curso', 'completed': 'Finalizado' };
         return estados[status.toLowerCase()] || status;
@@ -76,7 +87,7 @@
         fetch('/api/datos_tablero')
             .then(res => res.json())
             .then(datos => {
-                renderizarPrincipal(datos.principal);
+                renderizarPrincipal(datos.principales || datos.principal);
                 renderizarOtros(datos.jugados || [], datos.otros || []);
 
                 const tituloDerecho = document.getElementById('titulo-columna-derecha');
@@ -93,12 +104,7 @@
             .catch(err => console.error('Error al cargar:', err));
     }
 
-    function renderizarPrincipal(partido) {
-        const contenedor = document.getElementById('contenedor-principal');
-        if (!partido) {
-            contenedor.innerHTML = '<div class="hero-match"><p>No hay partidos programados para hoy.</p></div>';
-            return;
-        }
+    function construirPartidoPrincipal(partido, esMultiple) {
         const estado = traducirEstado(partido.status);
         const estadoKey = partido.status ? partido.status.toLowerCase() : '';
         const mostrarMarcador = estadoKey !== 'scheduled';
@@ -114,16 +120,17 @@
         const faseText = partido.group_name ? `Grupo ${partido.group_name}` : traducirRonda(partido.round);
         const faseHeader = partido.group_name ? `<div class="match-phase-header">${faseText}</div>` : '';
         const sedePrincipal = [partido.stadium, partido.stadium_city, partido.stadium_country].filter(Boolean).join(' - ');
+        const multipleClass = esMultiple ? ' hero-match-compact' : '';
 
-        contenedor.innerHTML = `
-            <section class="hero-match">
+        return `
+            <section class="hero-match${multipleClass}">
                 ${faseHeader}
                 <div class="match-status${estadoClase}">${infoTiempo}</div>
                 <div class="scoreboard">
                     <div class="team team-principal">
                         <div class="team-main-identity">
                             ${banderaHtml(partido.home_team)}
-                            <h2>${partido.home_team || 'Por Clasificar'}</h2>
+                            <h2 class="${claseNombreEquipo(partido.home_team)}">${partido.home_team || 'Por Clasificar'}</h2>
                         </div>
                     </div>
                     <div class="score-center">
@@ -133,13 +140,31 @@
                     <div class="team team-principal">
                         <div class="team-main-identity">
                             ${banderaHtml(partido.away_team)}
-                            <h2>${partido.away_team || 'Por Clasificar'}</h2>
+                            <h2 class="${claseNombreEquipo(partido.away_team)}">${partido.away_team || 'Por Clasificar'}</h2>
                         </div>
                     </div>
                 </div>
                 <div class="stadium-info">${sedePrincipal || 'Sede por confirmar'}</div>
             </section>
         `;
+    }
+
+    function renderizarPrincipal(partidosPrincipal) {
+        const contenedor = document.getElementById('contenedor-principal');
+        const partidos = Array.isArray(partidosPrincipal)
+            ? partidosPrincipal
+            : (partidosPrincipal ? [partidosPrincipal] : []);
+
+        if (!partidos.length) {
+            contenedor.innerHTML = '<div class="hero-match"><p>No hay partidos programados para hoy.</p></div>';
+            return;
+        }
+
+        const esMultiple = partidos.length > 1;
+        const partidosHtml = partidos.map(partido => construirPartidoPrincipal(partido, esMultiple)).join('');
+        contenedor.innerHTML = esMultiple
+            ? `<div class="hero-match-grid">${partidosHtml}</div>`
+            : partidosHtml;
     }
 
     function renderizarOtros(partidosJugados, partidosPorJugar) {
