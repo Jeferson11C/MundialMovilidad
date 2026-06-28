@@ -381,7 +381,8 @@ body {
     text-transform: uppercase;
 }
 
-.match-status.status-live {
+.match-status.status-live,
+.match-status.status-in_progress {
     background-color: #dcfce7;
     color: #166534;
 }
