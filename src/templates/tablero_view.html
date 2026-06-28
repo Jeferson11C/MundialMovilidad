@@ -1,3 +1,9 @@
+<div class="phase-switch" aria-label="Selector de fase">
+    <button type="button" class="phase-switch-btn active" data-phase="partidos">Partidos</button>
+    <button type="button" class="phase-switch-btn" data-phase="final">Fase final</button>
+    <button type="button" class="phase-switch-btn" data-phase="grupos">Fase de grupos</button>
+</div>
+
 <div class="dashboard-grid" id="vista-tablero">
     <div class="columna-partidos">
             <div id="contenedor-principal"></div>
@@ -7,11 +13,11 @@
                     <button type="button" class="mobile-match-tab active" data-target="resto">Resto de la jornada</button>
                 </div>
                 <div class="other-column" id="columna-jugados">
-                    <h4 class="subsection-title subsection-title-orange">Partidos jugados</h4>
+                    <h4 class="subsection-title subsection-title-orange" id="titulo-jugados">Partidos jugados</h4>
                     <div id="contenedor-jugados" class="other-matches"></div>
                 </div>
                 <div class="other-column" id="columna-resto">
-                    <h4 class="subsection-title subsection-title-orange">Resto de la jornada</h4>
+                    <h4 class="subsection-title subsection-title-orange" id="titulo-resto">Resto de la jornada</h4>
                     <div id="contenedor-otros" class="other-matches"></div>
                 </div>
             </div>

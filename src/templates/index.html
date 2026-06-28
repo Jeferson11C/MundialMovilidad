@@ -27,10 +27,50 @@
         {% include 'tablero_view.html' %}
     </main>
 
+    <div id="inicio-aviso-modal" class="app-modal hidden" role="dialog" aria-modal="true" aria-labelledby="inicio-aviso-title">
+        <div class="app-modal__panel">
+            <button type="button" id="inicio-aviso-cerrar" class="app-modal__close" aria-label="Cerrar aviso">&times;</button>
+            <h2 id="inicio-aviso-title">Fase final</h2>
+            <p id="inicio-aviso-texto" class="app-modal__text"></p>
+            <button type="button" id="inicio-aviso-entendido" class="app-modal__action">Entendido</button>
+        </div>
+    </div>
+
     {% include 'tablero_scripts.html' %}
     <script>
+        const mensajeInicio = `\u00a1La fase de grupos ha llegado a su fin! \u26bd\ufe0f
+
+Ahora damos paso a la fase de knockouts\u2026 y con ello, \u00a1arrancamos desde cero!
+Nuevo ranking, nuevas oportunidades y todo por jugar \ud83d\udcaa
+
++3 puntos si aciertas marcador exacto (marcador hasta los 120 minutos)
++1 punto si aciertas quien pasa a la siguiente fase
+Los pronosticos se recibiran hasta 10 minutos antes de cada partido
+
+Los ganadores de la fase de grupos se anunciar\u00e1n en el transcurso de la semana, \u00a1as\u00ed que atentos! \ud83d\udc40
+
+\u00a1A seguir participando y mucha suerte en esta nueva etapa! \ud83c\udf89`;
+
+        function configurarAvisoInicio() {
+            const modal = document.getElementById('inicio-aviso-modal');
+            const texto = document.getElementById('inicio-aviso-texto');
+            const cerrar = () => modal.classList.add('hidden');
+            texto.innerText = mensajeInicio;
+            modal.classList.remove('hidden');
+            document.getElementById('inicio-aviso-cerrar').addEventListener('click', cerrar);
+            document.getElementById('inicio-aviso-entendido').addEventListener('click', cerrar);
+            modal.addEventListener('click', (event) => {
+                if (event.target === modal) cerrar();
+            });
+            document.addEventListener('keydown', (event) => {
+                if (event.key === 'Escape') cerrar();
+            });
+        }
+
+        configurarSelectorFase();
+        configurarAvisoInicio();
         cargarDatos();
-        setInterval(cargarDatos, 60000);
+        setInterval(cargarDatos, 600000);
     </script>
 </body>
 </html>

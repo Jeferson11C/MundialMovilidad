@@ -1,11 +1,35 @@
-from flask import Flask, render_template, jsonify
+from flask import Flask, render_template, jsonify, request
 from datetime import datetime, timedelta, timezone
 import json
 import os
+import math
 import requests
 import polars as pl
 import csv
 from io import StringIO
+from urllib.parse import quote
+try:
+    from .football_data_mappings import (
+        GROUP_MATCH_NUMBER_BY_TEAMS,
+        INTERNAL_ID_BY_MATCH_NUMBER,
+        KNOCKOUT_START_MATCH_NUMBER,
+        STADIUM_BY_MATCH_NUMBER,
+        STAGE_TO_ROUND,
+        STATUS_TO_INTERNAL,
+        TEAM_CODE_ALIASES,
+        TEAM_INFO_BY_CODE,
+    )
+except ImportError:
+    from football_data_mappings import (
+        GROUP_MATCH_NUMBER_BY_TEAMS,
+        INTERNAL_ID_BY_MATCH_NUMBER,
+        KNOCKOUT_START_MATCH_NUMBER,
+        STADIUM_BY_MATCH_NUMBER,
+        STAGE_TO_ROUND,
+        STATUS_TO_INTERNAL,
+        TEAM_CODE_ALIASES,
+        TEAM_INFO_BY_CODE,
+    )
 
 app = Flask(__name__)
 
@@ -22,7 +46,7 @@ except FileNotFoundError:
 cache_tablero = {}
 ultima_actualizacion_slot = None
 PERU_TZ = timezone(timedelta(hours=-5))
-HORA_INICIO_ACTUALIZACION = 11
+INTERVALO_ACTUALIZACION_MINUTOS = 10
 
 TRADUCCION_PAISES = {
     "Mexico": "México",
@@ -81,23 +105,70 @@ MESES = {
     9: "septiembre", 10: "octubre", 11: "noviembre", 12: "diciembre"
 }
 ruta_ranking = os.path.join(os.path.dirname(__file__), 'ranking_usuarios.json')
+ruta_excel_partidos = os.path.join(os.path.dirname(__file__), 'resultados_partidos.xlsx')
 GOOGLE_SHEET_RANKING_CSV_URL = os.getenv(
     "GOOGLE_SHEET_RANKING_CSV_URL",
     "https://docs.google.com/spreadsheets/d/1A4fLL4bUPuu61HNzB8t3rm6o8RVUSJ89s2syxaQcacY/export?format=csv&gid=0"
 )
+GOOGLE_SHEET_RANKING_FINAL_CSV_URL = os.getenv(
+    "GOOGLE_SHEET_RANKING_FINAL_CSV_URL",
+    "https://docs.google.com/spreadsheets/d/1A4fLL4bUPuu61HNzB8t3rm6o8RVUSJ89s2syxaQcacY/gviz/tq?tqx=out:csv&sheet="
+    + quote("Hoja 2")
+)
+GOOGLE_SHEET_PARTIDOS_WEBHOOK_URL = os.getenv(
+    "GOOGLE_SHEET_PARTIDOS_WEBHOOK_URL",
+    "https://script.google.com/macros/s/AKfycbz9RHYATwMmuL6jJkgOr59ucXZEB2cJ0RdVAKPk7qcMtq58M4ODZM-sRLK4DwMfbx8/exec"
+)
+GOOGLE_SHEET_PARTIDOS_CSV_URL = os.getenv("GOOGLE_SHEET_PARTIDOS_CSV_URL", "")
+FOOTBALL_DATA_MATCHES_URL = "https://api.football-data.org/v4/competitions/WC/matches"
+FOOTBALL_DATA_TOKEN = os.getenv("FOOTBALL_DATA_TOKEN", "ef87be9ee90b4f0687ebf8524cb92252")
+EXCEL_COLUMNAS_PARTIDOS = [
+    "id", "match_number", "round", "group_name",
+    "home_team_id", "home_team", "home_team_code", "home_team_flag",
+    "away_team_id", "away_team", "away_team_code", "away_team_flag",
+    "stadium_id", "stadium", "stadium_city", "stadium_country",
+    "kickoff_utc", "home_score", "away_score", "home_pen", "away_pen",
+    "status", "fecha_peru_str", "hora_peru", "fecha_peru_key",
+    "Tipo de Resultado", "Ganador", "Partido",
+]
+EQUIPOS_CLASIFICADOS_BASE = {
+    "Alemania", "Paraguay", "Francia", "Suecia", "Sudáfrica", "Canadá",
+    "Países Bajos", "Marruecos", "Portugal", "Croacia", "España", "Austria",
+    "Estados Unidos", "Bosnia y Herzegovina", "Bélgica", "Senegal",
+    "Brasil", "Japón", "Costa de Marfil", "Noruega", "México", "Ecuador",
+    "Inglaterra", "RD del Congo", "Argentina", "Cabo Verde", "Australia",
+    "Egipto", "Suiza", "Argelia", "Colombia", "Ghana",
+    "Germany", "South Africa", "Canada", "Netherlands", "Spain", "USA",
+    "Bosnia-Herzegovina", "Belgium", "Japan", "Côte d'Ivoire", "Mexico",
+    "England", "Congo DR", "Egypt", "Switzerland", "Algeria",
+}
+CODIGOS_CLASIFICADOS_BASE = {
+    "GER", "PAR", "FRA", "SWE", "RSA", "CAN", "NED", "MAR",
+    "POR", "CRO", "ESP", "AUT", "USA", "BIH", "BEL", "SEN",
+    "BRA", "JPN", "CIV", "NOR", "MEX", "ECU", "ENG", "COD",
+    "ARG", "CPV", "AUS", "EGY", "SUI", "ALG", "COL", "GHA",
+}
+
+
 def traducir_equipo(nombre):
     return TRADUCCION_PAISES.get(nombre, nombre)
 
 
 def obtener_slot_actualizacion_peru(ahora_peru=None):
     ahora_peru = ahora_peru or datetime.now(PERU_TZ)
-    if ahora_peru.hour < HORA_INICIO_ACTUALIZACION:
-        return None
-    return ahora_peru.replace(minute=0, second=0, microsecond=0).isoformat()
+    minuto_slot = (ahora_peru.minute // INTERVALO_ACTUALIZACION_MINUTOS) * INTERVALO_ACTUALIZACION_MINUTOS
+    return ahora_peru.replace(minute=minuto_slot, second=0, microsecond=0).isoformat()
 
 
-def _leer_ranking_desde_google_sheet():
-    response = requests.get(GOOGLE_SHEET_RANKING_CSV_URL, timeout=20, verify=False)
+def convertir_utc_a_peru(fecha_utc_str):
+    fecha_utc = datetime.fromisoformat(fecha_utc_str.replace("Z", "+00:00"))
+    if fecha_utc.tzinfo is None:
+        fecha_utc = fecha_utc.replace(tzinfo=timezone.utc)
+    return fecha_utc.astimezone(PERU_TZ)
+
+
+def _leer_ranking_desde_google_sheet(url_csv):
+    response = requests.get(url_csv, timeout=20, verify=False)
     response.raise_for_status()
 
     contenido = response.content.decode("utf-8-sig")
@@ -136,11 +207,19 @@ def _leer_ranking_desde_google_sheet():
     return {"ranking": ranking}
 
 
-def obtener_ranking_usuarios():
+def obtener_ranking_usuarios(fase="grupos"):
+    url_ranking = (
+        GOOGLE_SHEET_RANKING_FINAL_CSV_URL
+        if fase == "final"
+        else GOOGLE_SHEET_RANKING_CSV_URL
+    )
     try:
-        return _leer_ranking_desde_google_sheet()
+        return _leer_ranking_desde_google_sheet(url_ranking)
     except Exception as e:
         print(f"Error cargando ranking desde Google Sheet, usando JSON local: {e}")
+
+    if fase == "final":
+        return {"ranking": []}
 
     try:
         with open(ruta_ranking, 'r', encoding='utf-8') as f:
@@ -185,17 +264,333 @@ def obtener_ranking_usuarios():
 
 
 def enviar_a_google_sheets(df_final):
-    url_webhook = "https://script.google.com/macros/s/AKfycbz9RHYATwMmuL6jJkgOr59ucXZEB2cJ0RdVAKPk7qcMtq58M4ODZM-sRLK4DwMfbx8/exec"
-    
     encabezados = [df_final.columns]
     filas = df_final.rows()
     data_final = encabezados + [list(fila) for fila in filas]
 
     try:
-        response = requests.post(url_webhook, json=data_final, verify=False)
+        response = requests.post(GOOGLE_SHEET_PARTIDOS_WEBHOOK_URL, json=data_final, verify=False)
         print("Respuesta de Google:", response.status_code)
     except Exception as e:
         print("Error al enviar a Google Sheets:", e)
+
+
+def limpiar_valor_sheet(valor):
+    if valor is None:
+        return None
+    if isinstance(valor, float) and math.isnan(valor):
+        return None
+    if isinstance(valor, str):
+        valor = valor.strip()
+        return valor if valor else None
+    return valor
+
+
+def convertir_entero_sheet(valor):
+    valor = limpiar_valor_sheet(valor)
+    if valor is None:
+        return None
+    try:
+        return int(float(str(valor).replace(",", ".")))
+    except (TypeError, ValueError):
+        return None
+
+
+def aplicar_estadio_por_match_number(partido):
+    match_number = convertir_entero_sheet(partido.get("match_number"))
+    estadio = STADIUM_BY_MATCH_NUMBER.get(match_number)
+    if not estadio:
+        return partido
+
+    partido["match_number"] = match_number
+    partido["stadium_id"] = partido.get("stadium_id") or estadio[0]
+    partido["stadium"] = partido.get("stadium") or estadio[1]
+    partido["stadium_city"] = partido.get("stadium_city") or estadio[2]
+    partido["stadium_country"] = partido.get("stadium_country") or estadio[3]
+    return partido
+
+
+def obtener_filas_sheet_desde_respuesta(respuesta):
+    texto = respuesta.text.strip()
+    if not texto:
+        return []
+
+    content_type = respuesta.headers.get("Content-Type", "")
+    if "json" in content_type.lower() or texto.startswith("[") or texto.startswith("{"):
+        data = respuesta.json()
+        if isinstance(data, dict):
+            data = data.get("rows") or data.get("data") or data.get("values") or []
+        if not data:
+            return []
+        if all(isinstance(fila, dict) for fila in data):
+            return data
+        if all(isinstance(fila, list) for fila in data):
+            encabezados = [str(columna).strip() for columna in data[0]]
+            return [
+                dict(zip(encabezados, fila))
+                for fila in data[1:]
+                if any(limpiar_valor_sheet(valor) is not None for valor in fila)
+            ]
+        return []
+
+    lector = csv.DictReader(StringIO(respuesta.content.decode("utf-8-sig")))
+    return [
+        fila
+        for fila in lector
+        if any(limpiar_valor_sheet(valor) is not None for valor in fila.values())
+    ]
+
+
+def normalizar_partido_desde_sheet(fila):
+    partido_id = convertir_entero_sheet(fila.get("id"))
+    if partido_id is None:
+        return None
+
+    partido = {columna: limpiar_valor_sheet(fila.get(columna)) for columna in EXCEL_COLUMNAS_PARTIDOS}
+    for columna in [
+        "id", "match_number", "home_team_id", "away_team_id", "stadium_id",
+        "home_score", "away_score", "home_pen", "away_pen",
+    ]:
+        partido[columna] = convertir_entero_sheet(partido.get(columna))
+
+    kickoff_utc = partido.get("kickoff_utc")
+    if not isinstance(kickoff_utc, str) or "T" not in kickoff_utc:
+        partido["kickoff_utc"] = None
+
+    partido["home_team_flag"] = None
+    partido["away_team_flag"] = None
+    aplicar_estadio_por_match_number(partido)
+
+    if partido.get("home_team") and partido.get("away_team") and not partido.get("Partido"):
+        partido["Partido"] = f"{partido['home_team']} vs {partido['away_team']}"
+
+    return partido
+
+
+def obtener_partidos_desde_google_sheet():
+    urls = []
+    if GOOGLE_SHEET_PARTIDOS_CSV_URL:
+        urls.append(("CSV", GOOGLE_SHEET_PARTIDOS_CSV_URL))
+    if GOOGLE_SHEET_PARTIDOS_WEBHOOK_URL:
+        urls.append(("webhook", GOOGLE_SHEET_PARTIDOS_WEBHOOK_URL))
+
+    for origen, url in urls:
+        try:
+            print(f"Consultando fallback Google Sheet de partidos ({origen})...")
+            respuesta = requests.get(url, timeout=20, verify=False)
+            print(f"Google Sheet partidos ({origen}) status code: {respuesta.status_code}")
+            respuesta.raise_for_status()
+            filas = obtener_filas_sheet_desde_respuesta(respuesta)
+            partidos = [
+                partido
+                for partido in (normalizar_partido_desde_sheet(fila) for fila in filas)
+                if partido is not None
+            ]
+            print(f"Partidos leidos desde Google Sheet: {len(partidos)}")
+            if partidos:
+                return partidos
+        except Exception as e:
+            print(f"Error leyendo Google Sheet de partidos ({origen}): {e}")
+
+    return []
+
+
+def obtener_partidos_para_sincronizar(fecha_hoy_dt):
+    partidos = obtener_partidos_desde_api()
+    if partidos:
+        return partidos
+
+    print("La API no devolvio partidos. Se conserva la data local y no se actualiza el Sheet.")
+    return []
+
+
+def normalizar_codigo_equipo(codigo):
+    if not codigo:
+        return None
+    codigo = codigo.strip().upper()
+    return TEAM_CODE_ALIASES.get(codigo, codigo)
+
+
+def obtener_info_equipo(codigo, errores_mapeo):
+    codigo_normalizado = normalizar_codigo_equipo(codigo)
+    if not codigo_normalizado:
+        return {"id": None, "nombre": None, "codigo": None}
+
+    info = TEAM_INFO_BY_CODE.get(codigo_normalizado)
+    if not info:
+        errores_mapeo.append(f"Equipo sin mapeo interno: {codigo_normalizado}")
+        return {"id": None, "nombre": None, "codigo": codigo_normalizado}
+
+    return {"id": info["id"], "nombre": info["nombre"], "codigo": codigo_normalizado}
+
+
+def obtener_match_number_grupo(home_code, away_code, errores_mapeo):
+    match_number = GROUP_MATCH_NUMBER_BY_TEAMS.get((home_code, away_code))
+    if match_number is None:
+        errores_mapeo.append(f"Cruce de grupos sin match_number: {home_code} vs {away_code}")
+    return match_number
+
+
+def construir_indices_eliminatoria(matches):
+    indices = {}
+    for ronda, inicio in KNOCKOUT_START_MATCH_NUMBER.items():
+        stage = next((k for k, v in STAGE_TO_ROUND.items() if v == ronda), None)
+        partidos_ronda = sorted(
+            [m for m in matches if STAGE_TO_ROUND.get(m.get("stage")) == ronda],
+            key=lambda m: m.get("utcDate") or ""
+        )
+        for offset, match in enumerate(partidos_ronda):
+            indices[match.get("id")] = inicio + offset
+    return indices
+
+
+def obtener_tipo_resultado(match):
+    duration = ((match.get("score") or {}).get("duration") or "").upper()
+    if duration == "PENALTY_SHOOTOUT":
+        return "Penales"
+    if duration == "EXTRA_TIME":
+        return "Tiempo extra"
+    return "Regular"
+
+
+def obtener_ganador(match, home_name, away_name, status):
+    winner = ((match.get("score") or {}).get("winner") or "").upper()
+    if status == "scheduled":
+        return "Por jugar"
+    if status == "in_progress":
+        return "En vivo"
+    if winner == "HOME_TEAM":
+        return home_name or "Por definir"
+    if winner == "AWAY_TEAM":
+        return away_name or "Por definir"
+    if winner == "DRAW":
+        return "Empate"
+    return "Por jugar"
+
+
+def obtener_group_name(match):
+    group = match.get("group")
+    if not group:
+        return None
+    return group.replace("GROUP_", "")[-1]
+
+
+def transformar_partido_football_data(match, match_number, errores_mapeo):
+    home = match.get("homeTeam") or {}
+    away = match.get("awayTeam") or {}
+    home_info = obtener_info_equipo(home.get("tla"), errores_mapeo)
+    away_info = obtener_info_equipo(away.get("tla"), errores_mapeo)
+    score = match.get("score") or {}
+    full_time = score.get("fullTime") or {}
+    penalties = score.get("penalties") or {}
+    round_name = STAGE_TO_ROUND.get(match.get("stage"))
+    status = STATUS_TO_INTERNAL.get(match.get("status"), "scheduled")
+    internal_id = INTERNAL_ID_BY_MATCH_NUMBER.get(match_number)
+    stadium_id, stadium, stadium_city, stadium_country = STADIUM_BY_MATCH_NUMBER.get(
+        match_number,
+        (None, None, None, None)
+    )
+
+    if match_number is None:
+        errores_mapeo.append(f"Partido sin match_number: external_id={match.get('id')}")
+    elif internal_id is None:
+        errores_mapeo.append(f"match_number sin id interno: {match_number}")
+
+    return {
+        "id": internal_id,
+        "match_number": match_number,
+        "round": round_name,
+        "group_name": obtener_group_name(match) if round_name == "group" else None,
+        "home_team_id": home_info["id"],
+        "home_team": home_info["nombre"],
+        "home_team_code": home_info["codigo"],
+        "home_team_flag": home.get("crest"),
+        "away_team_id": away_info["id"],
+        "away_team": away_info["nombre"],
+        "away_team_code": away_info["codigo"],
+        "away_team_flag": away.get("crest"),
+        "stadium_id": stadium_id,
+        "stadium": stadium,
+        "stadium_city": stadium_city,
+        "stadium_country": stadium_country,
+        "kickoff_utc": match.get("utcDate"),
+        "home_score": full_time.get("home"),
+        "away_score": full_time.get("away"),
+        "home_pen": penalties.get("home"),
+        "away_pen": penalties.get("away"),
+        "status": status,
+        "Tipo de Resultado": obtener_tipo_resultado(match),
+        "Ganador": obtener_ganador(match, home_info["nombre"], away_info["nombre"], status),
+        "Partido": f"{home_info['nombre'] or 'Por definir'} vs {away_info['nombre'] or 'Por definir'}",
+    }
+
+
+def obtener_partidos_desde_api():
+    headers = {"X-Auth-Token": FOOTBALL_DATA_TOKEN, "Accept": "application/json"}
+    print(f"Consultando football-data.org: {FOOTBALL_DATA_MATCHES_URL}")
+
+    try:
+        respuesta = requests.get(
+            FOOTBALL_DATA_MATCHES_URL,
+            headers=headers,
+            timeout=20,
+            verify=False
+        )
+        print(f"football-data.org status code: {respuesta.status_code}")
+
+        if respuesta.status_code == 401:
+            print("Error football-data.org: token invalido")
+            return []
+        if respuesta.status_code == 403:
+            print("Error football-data.org: sin permisos")
+            return []
+        if respuesta.status_code == 429:
+            print("Error football-data.org: rate limit alcanzado")
+            return []
+        if respuesta.status_code >= 500:
+            print("Error football-data.org: error del servidor")
+            return []
+        respuesta.raise_for_status()
+    except Exception as e:
+        print(f"Error consultando football-data.org: {e}")
+        return []
+
+    payload = respuesta.json()
+    matches = payload.get("matches", [])
+    print(f"Partidos recibidos football-data.org: {len(matches)}")
+
+    errores_mapeo = []
+    indices_eliminatoria = construir_indices_eliminatoria(matches)
+    partidos = []
+
+    for match in matches:
+        round_name = STAGE_TO_ROUND.get(match.get("stage"))
+        if not round_name:
+            errores_mapeo.append(f"Stage sin mapeo: {match.get('stage')}")
+            continue
+
+        home_code = normalizar_codigo_equipo((match.get("homeTeam") or {}).get("tla"))
+        away_code = normalizar_codigo_equipo((match.get("awayTeam") or {}).get("tla"))
+        if round_name == "group":
+            match_number = obtener_match_number_grupo(home_code, away_code, errores_mapeo)
+        else:
+            match_number = indices_eliminatoria.get(match.get("id"))
+
+        partido = transformar_partido_football_data(match, match_number, errores_mapeo)
+        if partido.get("id") is not None:
+            partidos.append(partido)
+
+    estados = {}
+    for partido in partidos:
+        estado = partido.get("status") or "sin_estado"
+        estados[estado] = estados.get(estado, 0) + 1
+
+    print(f"Filas generadas/actualizadas: {len(partidos)}")
+    print(f"Partidos por estado: {estados}")
+    for error in errores_mapeo:
+        print(f"Error de mapeo: {error}")
+
+    return partidos
 
 
 def guardar_fixture_json(partidos):
@@ -227,20 +622,37 @@ def guardar_fixture_json(partidos):
 
 
 def guardar_datos_excel(partidos):
-    df = pl.DataFrame(partidos)
-    df_final = df.with_columns([
-        pl.col("kickoff_utc").str.to_datetime("%Y-%m-%dT%H:%M:%S%.3fZ")
-          .dt.strftime("%d/%m/%Y")
-          .alias("kickoff_utc"),
+    filas = []
+    for partido in partidos:
+        aplicar_estadio_por_match_number(partido)
+        fila = {columna: partido.get(columna) for columna in EXCEL_COLUMNAS_PARTIDOS}
+        aplicar_estadio_por_match_number(fila)
+        fila["home_team_flag"] = None
+        fila["away_team_flag"] = None
 
-        (pl.lit("'") + pl.col("hora_peru").str.slice(0, 5)).alias("hora_peru"),
+        fecha_utc_str = fila.get("kickoff_utc")
+        if fecha_utc_str:
+            try:
+                fila["kickoff_utc"] = convertir_utc_a_peru(fecha_utc_str).strftime("%d/%m/%Y")
+            except Exception:
+                fila["kickoff_utc"] = str(fecha_utc_str)[:10]
+
+        filas.append(fila)
+
+    df = pl.DataFrame(filas)
+    df_final = df.with_columns([
+        (pl.lit("'") + pl.col("hora_peru").fill_null("").str.slice(0, 5)).alias("hora_peru"),
         
-        pl.when(pl.col("home_pen").is_not_null())
+        pl.when(pl.col("Tipo de Resultado") == "Tiempo extra")
+          .then(pl.lit("Tiempo extra"))
+          .when(pl.col("home_pen").is_not_null())
           .then(pl.lit("Penales"))
           .otherwise(pl.lit("Regular"))
           .alias("Tipo de Resultado"),
           
-        pl.when(pl.col("status") == "completed")
+        pl.when(pl.col("status") == "in_progress")
+            .then(pl.lit("En vivo"))
+          .when(pl.col("status") == "completed")
             .then(
                 pl.when(pl.col("home_pen").is_not_null())
                 .then(
@@ -255,10 +667,13 @@ def guardar_datos_excel(partidos):
           ).otherwise(pl.lit("Por jugar"))
           .alias("Ganador"),
 
-        (pl.col("home_team") + " vs " + pl.col("away_team")).alias("Partido")
-    ])
-    ruta_excel = os.path.join(os.getcwd(), 'resultados_partidos.xlsx')
-    df_final.write_excel(ruta_excel)
+        (
+            pl.col("home_team").fill_null("Por definir")
+            + " vs "
+            + pl.col("away_team").fill_null("Por definir")
+        ).alias("Partido")
+    ]).select(EXCEL_COLUMNAS_PARTIDOS)
+    df_final.write_excel(ruta_excel_partidos)
     enviar_a_google_sheets(df_final)
 
 def calcular_posiciones_grupos(todos_los_partidos):
@@ -272,9 +687,21 @@ def calcular_posiciones_grupos(todos_los_partidos):
         if g_name not in estruct_grupos:
             estruct_grupos[g_name] = {}
             
-        for equipo in [p["home_team"], p["away_team"]]:
+        for lado in ["home", "away"]:
+            equipo = p.get(f"{lado}_team")
+            codigo = p.get(f"{lado}_team_code")
+            if not equipo:
+                continue
             if equipo not in estruct_grupos[g_name]:
-                estruct_grupos[g_name][equipo] = {"nombre": equipo, "pj": 0, "pts": 0, "gf": 0, "gc": 0, "dg": 0}
+                estruct_grupos[g_name][equipo] = {
+                    "nombre": equipo,
+                    "codigo": codigo,
+                    "pj": 0,
+                    "pts": 0,
+                    "gf": 0,
+                    "gc": 0,
+                    "dg": 0,
+                }
 
     for p in todos_los_partidos:
         g_name = p.get("group_name")
@@ -326,55 +753,81 @@ def obtener_datos_tablero():
     )
     
     if debe_sincronizar:
-        print(f"Sincronizando marcadores con la API externa... slot Peru: {slot_actualizacion or 'carga inicial'}")
+        print(f"Sincronizando marcadores... slot Peru: {slot_actualizacion or 'carga inicial'}")
         
-        url_api = "https://api.wc2026api.com/matches"
-        token_real = "wc26_4TUutBnL1Qgocn3WrVSmmQ"
-        headers = {"Authorization": f"Bearer {token_real}", "Accept": "application/json"}
-        try:
-            respuesta = requests.get(url_api, headers=headers, verify=False)
-            resultados_en_vivo = respuesta.json() if respuesta.status_code == 200 else []
-        except Exception as e:
-            print(f"Error de conexión: {e}")
-            resultados_en_vivo = []
+        resultados_en_vivo = obtener_partidos_para_sincronizar(fecha_hoy_dt)
 
         fecha_hoy_str = fecha_hoy_dt.strftime("%Y-%m-%d")
         
-        diccionario_resultados = {r["id"]: r for r in resultados_en_vivo}
+        diccionario_resultados = {
+            r.get("id"): r
+            for r in resultados_en_vivo
+            if r.get("id") is not None
+        }
         
         for p in FIXTURE_ESTATICO:
             id_p = p.get("id")
             if id_p in diccionario_resultados:
                 datos = diccionario_resultados[id_p]
                 p.update({
+                    "match_number": datos.get("match_number", p.get("match_number")) or p.get("match_number"),
+                    "round": datos.get("round", p.get("round")) or p.get("round"),
+                    "group_name": datos.get("group_name", p.get("group_name")) or p.get("group_name"),
+                    "home_team_id": datos.get("home_team_id", p.get("home_team_id")) or p.get("home_team_id"),
+                    "home_team": datos.get("home_team", p.get("home_team")) or p.get("home_team"),
+                    "home_team_code": datos.get("home_team_code", p.get("home_team_code")) or p.get("home_team_code"),
+                    "home_team_flag": datos.get("home_team_flag", p.get("home_team_flag")) or p.get("home_team_flag"),
+                    "away_team_id": datos.get("away_team_id", p.get("away_team_id")) or p.get("away_team_id"),
+                    "away_team": datos.get("away_team", p.get("away_team")) or p.get("away_team"),
+                    "away_team_code": datos.get("away_team_code", p.get("away_team_code")) or p.get("away_team_code"),
+                    "away_team_flag": datos.get("away_team_flag", p.get("away_team_flag")) or p.get("away_team_flag"),
+                    "stadium_id": datos.get("stadium_id", p.get("stadium_id")) or p.get("stadium_id"),
+                    "stadium": datos.get("stadium", p.get("stadium")) or p.get("stadium"),
+                    "stadium_city": datos.get("stadium_city", p.get("stadium_city")) or p.get("stadium_city"),
+                    "stadium_country": datos.get("stadium_country", p.get("stadium_country")) or p.get("stadium_country"),
+                    "kickoff_utc": datos.get("kickoff_utc", p.get("kickoff_utc")) or p.get("kickoff_utc"),
                     "home_score": datos.get("home_score"),
                     "away_score": datos.get("away_score"),
                     "home_pen": datos.get("home_pen"),
                     "away_pen": datos.get("away_pen"),
-                    "status": datos.get("status")
+                    "status": datos.get("status", p.get("status")) or p.get("status"),
+                    "Tipo de Resultado": datos.get("Tipo de Resultado", p.get("Tipo de Resultado")) or p.get("Tipo de Resultado"),
+                    "Ganador": datos.get("Ganador", p.get("Ganador")) or p.get("Ganador"),
+                    "Partido": datos.get("Partido", p.get("Partido")) or p.get("Partido")
                 })
+
+        for p in FIXTURE_ESTATICO:
+            aplicar_estadio_por_match_number(p)
 
         guardar_fixture_json(FIXTURE_ESTATICO)
 
         for p in FIXTURE_ESTATICO:
+            aplicar_estadio_por_match_number(p)
             p["home_team"] = traducir_equipo(p["home_team"])
             p["away_team"] = traducir_equipo(p["away_team"])
 
             fecha_utc_str = p.get("kickoff_utc")
             if fecha_utc_str:
-                limpia = fecha_utc_str.split('.')[0] + 'Z' if '.' in fecha_utc_str else fecha_utc_str
-                fecha_utc = datetime.strptime(limpia, "%Y-%m-%dT%H:%M:%SZ")
-                fecha_peru_dt = fecha_utc - timedelta(hours=5)
+                fecha_peru_dt = convertir_utc_a_peru(fecha_utc_str)
                 
                 p["fecha_peru_str"] = f"{fecha_peru_dt.day} de {MESES[fecha_peru_dt.month]}"
                 p["hora_peru"] = fecha_peru_dt.strftime("%H:%M")
                 p["fecha_peru_key"] = fecha_peru_dt.strftime("%Y-%m-%d")
 
         partidos_ordenados = sorted(FIXTURE_ESTATICO, key=lambda x: x.get("kickoff_utc", ""))
+        partidos_grupo = [p for p in partidos_ordenados if p.get("round") == "group"]
+        partidos_finales = [p for p in partidos_ordenados if p.get("round") != "group"]
         no_completados = [p for p in partidos_ordenados if p.get("status") != "completed"]
 
-        if no_completados:
-            principal = no_completados[0]
+        partidos_en_vivo = [p for p in no_completados if p.get("status") in {"live", "in_progress"}]
+        partidos_programados = [
+            p for p in no_completados
+            if p.get("fecha_peru_key", p.get("kickoff_utc", "")[:10]) >= fecha_hoy_str
+        ]
+        if partidos_en_vivo:
+            principal = partidos_en_vivo[0]
+        elif partidos_programados:
+            principal = partidos_programados[0]
         else:
             principal = partidos_ordenados[-1] if partidos_ordenados else None
 
@@ -387,29 +840,23 @@ def obtener_datos_tablero():
         ] if principal else []
         ids_principales = {p.get("id") for p in principales}
 
-        fecha_base_str = principal.get("fecha_peru_key") if principal else fecha_hoy_str
-        if not fecha_base_str and principal:
-            fecha_base_str = principal.get("kickoff_utc", "")[:10]
-        try:
-            fecha_base_dt = datetime.strptime(fecha_base_str, "%Y-%m-%d")
-        except Exception:
-            fecha_base_dt = fecha_hoy_dt.replace(tzinfo=None)
-        fecha_siguiente_str = (fecha_base_dt + timedelta(days=1)).strftime("%Y-%m-%d")
-        fecha_anterior_str = (fecha_base_dt - timedelta(days=1)).strftime("%Y-%m-%d")
+        fecha_siguiente_str = (fecha_hoy_dt + timedelta(days=1)).strftime("%Y-%m-%d")
 
-        ventana_resto = {fecha_base_str, fecha_siguiente_str}
         otros = [
             p for p in no_completados
             if p.get("id") not in ids_principales
-            and p.get("fecha_peru_key", p.get("kickoff_utc", "")[:10]) in ventana_resto
+            and p.get("fecha_peru_key", p.get("kickoff_utc", "")[:10]) == fecha_siguiente_str
         ]
         jugados = [
             p for p in partidos_ordenados
             if p.get("status") == "completed"
-            and p.get("fecha_peru_key", p.get("kickoff_utc", "")[:10]) in {fecha_anterior_str, fecha_base_str}
+            and p.get("fecha_peru_key", p.get("kickoff_utc", "")[:10]) == fecha_hoy_str
         ]
 
-        guardar_datos_excel(FIXTURE_ESTATICO)
+        if resultados_en_vivo:
+            guardar_datos_excel(FIXTURE_ESTATICO)
+        else:
+            print("Sheet no actualizado porque la API no devolvio datos.")
 
         es_fase_grupos = True
         partidos_eliminatoria = []
@@ -426,6 +873,20 @@ def obtener_datos_tablero():
             partidos_eliminatoria = [p for p in FIXTURE_ESTATICO if p.get("round") == ronda_activa]
         
         tablas_grupos = calcular_posiciones_grupos(FIXTURE_ESTATICO)
+        equipos_clasificados = {
+            equipo
+            for p in partidos_finales
+            if p.get("round") == "R32"
+            for equipo in (p.get("home_team"), p.get("away_team"))
+            if equipo
+        }
+        equipos_clasificados.update(EQUIPOS_CLASIFICADOS_BASE)
+        for grupo in tablas_grupos:
+            for equipo in grupo.get("equipos", []):
+                equipo["clasificado"] = (
+                    equipo.get("codigo") in CODIGOS_CLASIFICADOS_BASE
+                    or equipo.get("nombre") in equipos_clasificados
+                )
         
         cache_tablero = {
             "principal": principal,
@@ -433,6 +894,8 @@ def obtener_datos_tablero():
             "otros": otros,
             "jugados": jugados,
             "grupos": tablas_grupos,
+            "partidos_grupo": partidos_grupo,
+            "partidos_finales": partidos_finales,
             "es_fase_grupos": es_fase_grupos,
             "partidos_eliminatoria": partidos_eliminatoria 
         }
@@ -457,7 +920,10 @@ def api_tablero():
 
 @app.route('/api/ranking')
 def api_ranking():
-    response = jsonify(obtener_ranking_usuarios())
+    fase = request.args.get("fase", "grupos")
+    if fase not in {"grupos", "final"}:
+        fase = "grupos"
+    response = jsonify(obtener_ranking_usuarios(fase))
     response.headers["Cache-Control"] = "no-store"
     return response
 

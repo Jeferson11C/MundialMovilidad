@@ -1,4 +1,7 @@
 <script>
+    let datosTableroActual = null;
+    let faseActiva = 'partidos';
+
     function obtenerCodigoBandera(nombrePais) {
         const codigos = {
             'Mexico': 'mx', 'México': 'mx',
@@ -74,12 +77,12 @@
     }
 
     function traducirEstado(status) {
-        const estados = { 'scheduled': 'Programado', 'live': 'En Curso', 'completed': 'Finalizado' };
+        const estados = { 'scheduled': 'Programado', 'live': 'En Curso', 'in_progress': 'En Curso', 'completed': 'Finalizado', 'postponed': 'Postergado', 'cancelled': 'Cancelado', 'suspended': 'Suspendido' };
         return estados[status.toLowerCase()] || status;
     }
 
     function traducirRonda(round) {
-        const rondas = { 'round': 'Fase de Grupos', 'r32': 'Dieciseisavos', 'r16': 'Octavos', 'qf': 'Cuartos', 'sf': 'Semifinal', 'final': 'Final' };
+        const rondas = { 'group': 'Fase de Grupos', 'round': 'Fase de Grupos', 'r32': 'Dieciseisavos', 'r16': 'Octavos', 'qf': 'Cuartos', 'sf': 'Semifinal', '3rd': 'Tercer Puesto', 'final': 'Final' };
         return rondas[round.toLowerCase()] || round;
     }
 
@@ -87,21 +90,96 @@
         fetch('/api/datos_tablero')
             .then(res => res.json())
             .then(datos => {
-                renderizarPrincipal(datos.principales || datos.principal);
-                renderizarOtros(datos.jugados || [], datos.otros || []);
-
-                const tituloDerecho = document.getElementById('titulo-columna-derecha');
-
-                if (datos.es_fase_grupos) {
-                    tituloDerecho.innerText = 'Posiciones de Grupos';
-                    renderizarGrupos(datos.grupos);
-                } else {
-                    const nombreRonda = datos.partidos_eliminatoria.length > 0 ? traducirRonda(datos.partidos_eliminatoria[0].round) : 'Fase Final';
-                    tituloDerecho.innerText = 'Cruces: ' + nombreRonda;
-                    renderizarEliminatorias(datos.partidos_eliminatoria);
-                }
+                datosTableroActual = datos;
+                renderizarVistaActiva();
             })
             .catch(err => console.error('Error al cargar:', err));
+    }
+
+    function configurarSelectorFase() {
+        const botones = Array.from(document.querySelectorAll('.phase-switch-btn'));
+        botones.forEach(boton => {
+            boton.addEventListener('click', () => {
+                faseActiva = boton.dataset.phase || 'partidos';
+                botones.forEach(item => {
+                    const activo = item.dataset.phase === faseActiva;
+                    item.classList.toggle('active', activo);
+                    item.setAttribute('aria-pressed', activo ? 'true' : 'false');
+                });
+                renderizarVistaActiva();
+            });
+            boton.setAttribute('aria-pressed', boton.classList.contains('active') ? 'true' : 'false');
+        });
+    }
+
+    function renderizarVistaActiva() {
+        if (!datosTableroActual) {
+            return;
+        }
+
+        const tituloDerecho = document.getElementById('titulo-columna-derecha');
+        const vistaTablero = document.getElementById('vista-tablero');
+
+        vistaTablero.classList.remove('matches-mode', 'final-mode', 'groups-mode');
+
+        if (faseActiva === 'final') {
+            const finales = datosTableroActual.partidos_finales || [];
+            vistaTablero.classList.add('final-mode');
+            limpiarPartidos();
+            tituloDerecho.innerText = 'Llave de Fase Final';
+            renderizarLlaveFinal(finales);
+            return;
+        }
+
+        if (faseActiva === 'grupos') {
+            vistaTablero.classList.add('groups-mode');
+            limpiarPartidos();
+            tituloDerecho.innerText = 'Posiciones de Grupos';
+            renderizarGrupos(datosTableroActual.grupos || []);
+            return;
+        }
+
+        vistaTablero.classList.add('matches-mode');
+        renderizarPrincipal(datosTableroActual.principales || datosTableroActual.principal);
+        renderizarOtros(datosTableroActual.jugados || [], datosTableroActual.otros || []);
+        actualizarTitulosListas('Partidos jugados', 'Proximos partidos');
+        tituloDerecho.innerText = '';
+        document.getElementById('contenedor-grupos').innerHTML = '';
+    }
+
+    function limpiarPartidos() {
+        document.getElementById('contenedor-principal').innerHTML = '';
+        document.getElementById('contenedor-jugados').innerHTML = '';
+        document.getElementById('contenedor-otros').innerHTML = '';
+    }
+
+    function actualizarTitulosListas(tituloJugados, tituloResto) {
+        const tituloJugadosEl = document.getElementById('titulo-jugados');
+        const tituloRestoEl = document.getElementById('titulo-resto');
+        if (tituloJugadosEl) {
+            tituloJugadosEl.innerText = tituloJugados;
+        }
+        if (tituloRestoEl) {
+            tituloRestoEl.innerText = tituloResto;
+        }
+    }
+
+    function seleccionarPartidosDestacados(partidos) {
+        const ordenados = [...(partidos || [])].sort((a, b) => (a.kickoff_utc || '').localeCompare(b.kickoff_utc || ''));
+        const noCompletados = ordenados.filter(p => p.status !== 'completed');
+        const base = noCompletados.length ? noCompletados : ordenados.slice(-1);
+        const primero = base[0];
+
+        if (!primero) {
+            return [];
+        }
+
+        const fecha = primero.fecha_peru_key || (primero.kickoff_utc || '').slice(0, 10);
+        const hora = primero.hora_peru || '';
+        return base.filter(p => {
+            const fechaPartido = p.fecha_peru_key || (p.kickoff_utc || '').slice(0, 10);
+            return fechaPartido === fecha && (p.hora_peru || '') === hora;
+        });
     }
 
     function construirPartidoPrincipal(partido, esMultiple) {
@@ -195,14 +273,14 @@
                         <div class="mini-team">
                             <div class="mini-team-identity">
                                 ${banderaHtml(p.home_team)}
-                                <span class="mini-team-name">${p.home_team}</span>
+                                <span class="mini-team-name">${p.home_team || 'Por Clasificar'}</span>
                             </div>
                         </div>
                         <div class="${esJugado ? 'mini-final-score' : 'mini-vs'}">${centroPartido}</div>
                         <div class="mini-team">
                             <div class="mini-team-identity">
                                 ${banderaHtml(p.away_team)}
-                                <span class="mini-team-name">${p.away_team}</span>
+                                <span class="mini-team-name">${p.away_team || 'Por Clasificar'}</span>
                             </div>
                         </div>
                     </div>
@@ -250,7 +328,7 @@
         }
 
         htmlJugados = renderizarGruposFecha(partidosJugados, true, true, false);
-        htmlPorJugar = renderizarGruposFecha(partidosPorJugar, false, false, true);
+        htmlPorJugar = renderizarGruposFecha(partidosPorJugar, false, false, faseActiva !== 'final');
 
         if (partidosJugados.length > 0) {
             layout.classList.remove('solo-resto');
@@ -315,40 +393,308 @@
         let html = '';
         grupos.forEach(grupo => {
             let filas = '';
-            grupo.equipos.forEach((eq) => {
-                filas += `<tr><td class="team-cell-name">${banderaHtml(eq.nombre)}${eq.nombre}</td><td>${eq.pj}</td><td>${eq.dg}</td><td>${eq.pts}</td></tr>`;
+            grupo.equipos.forEach((eq, index) => {
+                const clasificado = Boolean(eq.clasificado);
+                const estadoClase = clasificado ? 'is-qualified' : 'is-eliminated';
+                filas += `
+                    <tr class="${estadoClase}">
+                        <td class="position-cell">${index + 1}</td>
+                        <td class="team-cell-name">${banderaHtml(eq.nombre)}${eq.nombre}</td>
+                        <td>${eq.pj}</td>
+                        <td>${eq.dg}</td>
+                        <td class="pts-cell">${eq.pts}</td>
+                    </tr>
+                `;
             });
             html += `
                 <div class="tabla-grupo-container">
                     <div class="titulo-grupo">${grupo.nombre}</div>
                     <table class="tabla-grupo">
                         <thead>
-                            <tr><th>Equipo</th><th>PJ</th><th>DG</th><th>Pts</th></tr>
+                            <tr><th></th><th>Equipo</th><th>PJ</th><th>DG</th><th>Pts</th></tr>
                         </thead>
                     <tbody>${filas}</tbody></table>
                 </div>
             `;
         });
-        contenedor.innerHTML = html;
+        contenedor.innerHTML = `
+            ${html}
+            <div class="groups-legend">
+                <div class="groups-legend-title">Leyenda</div>
+                <div class="groups-legend-items">
+                    <span><i class="legend-mark legend-qualified"></i> Clasificado</span>
+                    <span><i class="legend-mark legend-eliminated"></i> Eliminado</span>
+                </div>
+            </div>
+        `;
     }
 
-    function renderizarEliminatorias(partidos) {
-        const contenedor = document.getElementById('contenedor-grupos');
-        let html = '';
-        partidos.forEach(p => {
-            const g1 = p.home_score !== null ? p.home_score : 0;
-            const g2 = p.away_score !== null ? p.away_score : 0;
-            html += `
-                <div class="match-card knockout-card">
-                    <div class="card-status">${p.hora_peru || ''}</div>
-                    <div class="card-teams knockout-teams">
-                        <span class="team-name knockout-home">${banderaHtml(p.home_team)}${p.home_team || 'TBD'}</span>
-                        <span class="card-score">${g1} : ${g2}</span>
-                        <span class="team-name knockout-away">${banderaHtml(p.away_team)}${p.away_team || 'TBD'}</span>
-                    </div>
-                </div>
-            `;
+    function obtenerGanadorPartido(partido) {
+        if (!partido || partido.status !== 'completed') {
+            return null;
+        }
+
+        if (partido.home_pen !== null && partido.away_pen !== null) {
+            return partido.home_pen > partido.away_pen ? 'home' : 'away';
+        }
+
+        if (partido.home_score > partido.away_score) {
+            return 'home';
+        }
+        if (partido.away_score > partido.home_score) {
+            return 'away';
+        }
+        return null;
+    }
+
+    function construirEquipoLlave(partido, lado, ganador) {
+        const nombre = partido[`${lado}_team`] || 'Por Clasificar';
+        const score = partido[`${lado}_score`];
+        const penales = partido[`${lado}_pen`];
+        const claseGanador = ganador === lado ? ' is-winner' : '';
+        const marcador = score !== null
+            ? `<span class="bracket-score">${score}${penales !== null ? ` (${penales})` : ''}</span>`
+            : '<span class="bracket-score">-</span>';
+
+        return `
+            <div class="bracket-team${claseGanador}">
+                <span class="bracket-team-name">${banderaHtml(nombre)}${nombre}</span>
+                ${marcador}
+            </div>
+        `;
+    }
+
+    function construirPartidoLlave(partido) {
+        const ganador = obtenerGanadorPartido(partido);
+
+        return `
+            <div class="bracket-match status-${partido.status || 'scheduled'}">
+                ${construirEquipoLlave(partido, 'home', ganador)}
+                ${construirEquipoLlave(partido, 'away', ganador)}
+            </div>
+        `;
+    }
+
+    const ordenR32Bracket = [
+        { home_team_code: 'GER', away_team_code: 'PAR', home_team: 'Alemania', away_team: 'Paraguay', lado: 'izquierda' },
+        { home_team_code: 'FRA', away_team_code: 'SWE', home_team: 'Francia', away_team: 'Suecia', lado: 'izquierda' },
+        { home_team_code: 'RSA', away_team_code: 'CAN', home_team: 'Sudáfrica', away_team: 'Canadá', lado: 'izquierda' },
+        { home_team_code: 'NED', away_team_code: 'MAR', home_team: 'Países Bajos', away_team: 'Marruecos', lado: 'izquierda' },
+        { home_team_code: 'POR', away_team_code: 'CRO', home_team: 'Portugal', away_team: 'Croacia', lado: 'izquierda' },
+        { home_team_code: 'ESP', away_team_code: 'AUT', home_team: 'España', away_team: 'Austria', lado: 'izquierda' },
+        { home_team_code: 'USA', away_team_code: 'BIH', home_team: 'Estados Unidos', away_team: 'Bosnia y Herzegovina', lado: 'izquierda' },
+        { home_team_code: 'BEL', away_team_code: 'SEN', home_team: 'Bélgica', away_team: 'Senegal', lado: 'izquierda' },
+        { home_team_code: 'BRA', away_team_code: 'JPN', home_team: 'Brasil', away_team: 'Japón', lado: 'derecha' },
+        { home_team_code: 'CIV', away_team_code: 'NOR', home_team: 'Costa de Marfil', away_team: 'Noruega', lado: 'derecha' },
+        { home_team_code: 'MEX', away_team_code: 'ECU', home_team: 'México', away_team: 'Ecuador', lado: 'derecha' },
+        { home_team_code: 'ENG', away_team_code: 'COD', home_team: 'Inglaterra', away_team: 'RD del Congo', lado: 'derecha' },
+        { home_team_code: 'ARG', away_team_code: 'CPV', home_team: 'Argentina', away_team: 'Cabo Verde', lado: 'derecha' },
+        { home_team_code: 'AUS', away_team_code: 'EGY', home_team: 'Australia', away_team: 'Egipto', lado: 'derecha' },
+        { home_team_code: 'SUI', away_team_code: 'ALG', home_team: 'Suiza', away_team: 'Argelia', lado: 'derecha' },
+        { home_team_code: 'COL', away_team_code: 'GHA', home_team: 'Colombia', away_team: 'Ghana', lado: 'derecha' }
+    ];
+
+    function construirPartidoSeedR32(seed, partido) {
+        return {
+            ...(partido || {}),
+            round: 'R32',
+            status: (partido && partido.status) || 'scheduled',
+            home_team: (partido && partido.home_team) || seed.home_team,
+            away_team: (partido && partido.away_team) || seed.away_team,
+            home_team_code: (partido && partido.home_team_code) || seed.home_team_code,
+            away_team_code: (partido && partido.away_team_code) || seed.away_team_code,
+            home_score: partido ? partido.home_score : null,
+            away_score: partido ? partido.away_score : null,
+            home_pen: partido ? partido.home_pen : null,
+            away_pen: partido ? partido.away_pen : null
+        };
+    }
+
+    function ordenarR32PorBracket(partidosR32) {
+        const usados = new Set();
+        const partidos = partidosR32 || [];
+        const buscarPartido = (seed) => {
+            let indice = partidos.findIndex((p, idx) => {
+                if (usados.has(idx)) return false;
+                return p.home_team_code === seed.home_team_code && p.away_team_code === seed.away_team_code;
+            });
+            if (indice === -1) {
+                indice = partidos.findIndex((p, idx) => {
+                    if (usados.has(idx)) return false;
+                    const codigos = [p.home_team_code, p.away_team_code].filter(Boolean);
+                    return codigos.includes(seed.home_team_code) || codigos.includes(seed.away_team_code);
+                });
+            }
+            if (indice === -1) {
+                return null;
+            }
+            usados.add(indice);
+            return partidos[indice];
+        };
+
+        const ordenados = ordenR32Bracket.map(seed => construirPartidoSeedR32(seed, buscarPartido(seed)));
+        return {
+            izquierda: ordenados.filter((_, idx) => ordenR32Bracket[idx].lado === 'izquierda'),
+            derecha: ordenados.filter((_, idx) => ordenR32Bracket[idx].lado === 'derecha')
+        };
+    }
+
+    function ordenarPartidosPorLlave(partidos) {
+        return [...(partidos || [])].sort((a, b) => {
+            const matchA = Number(a.match_number || 0);
+            const matchB = Number(b.match_number || 0);
+            if (matchA && matchB && matchA !== matchB) {
+                return matchA - matchB;
+            }
+            return (a.kickoff_utc || '').localeCompare(b.kickoff_utc || '');
         });
-        contenedor.innerHTML = html;
+    }
+
+    function equipoDesdePartido(partido, lado) {
+        if (!partido || !partido[`${lado}_team`]) {
+            return null;
+        }
+        return {
+            team: partido[`${lado}_team`],
+            code: partido[`${lado}_team_code`] || null
+        };
+    }
+
+    function ganadorComoEquipo(partido) {
+        const ganador = obtenerGanadorPartido(partido);
+        if (!ganador) {
+            return null;
+        }
+        return equipoDesdePartido(partido, ganador);
+    }
+
+    function construirPartidoDerivado(round, partidoReal, home, away) {
+        const base = partidoReal || {};
+        return {
+            ...base,
+            round,
+            status: base.status || 'scheduled',
+            home_team: base.home_team || (home && home.team) || null,
+            home_team_code: base.home_team_code || (home && home.code) || null,
+            away_team: base.away_team || (away && away.team) || null,
+            away_team_code: base.away_team_code || (away && away.code) || null,
+            home_score: partidoReal ? base.home_score : null,
+            away_score: partidoReal ? base.away_score : null,
+            home_pen: partidoReal ? base.home_pen : null,
+            away_pen: partidoReal ? base.away_pen : null
+        };
+    }
+
+    function construirRondaDerivada(round, partidosReales, fuentes) {
+        const reales = ordenarPartidosPorLlave(partidosReales);
+        return fuentes.map((par, idx) => {
+            const home = ganadorComoEquipo(par[0]);
+            const away = ganadorComoEquipo(par[1]);
+            return construirPartidoDerivado(round, reales[idx], home, away);
+        });
+    }
+
+    function dividirPartidosLlave(partidos, cantidadIzquierda) {
+        const ordenados = ordenarPartidosPorLlave(partidos);
+        return {
+            izquierda: ordenados.slice(0, cantidadIzquierda),
+            derecha: ordenados.slice(cantidadIzquierda)
+        };
+    }
+
+    function construirColumnaLlave(label, partidos, lado, rondaId) {
+        const partidosHtml = partidos.length
+            ? partidos.map(construirPartidoLlave).join('')
+            : '<div class="bracket-placeholder">Por definirse</div>';
+
+        return `
+            <section class="bracket-round bracket-round-${rondaId.toLowerCase()} bracket-${lado}">
+                <div class="bracket-round-label">${label}</div>
+                <div class="bracket-matches">${partidosHtml}</div>
+            </section>
+        `;
+    }
+
+    function renderizarLlaveFinal(partidos) {
+        const contenedor = document.getElementById('contenedor-grupos');
+        const partidosPorRonda = {};
+
+        (partidos || []).forEach(partido => {
+            if (!partidosPorRonda[partido.round]) {
+                partidosPorRonda[partido.round] = [];
+            }
+            partidosPorRonda[partido.round].push(partido);
+        });
+
+        const r32 = ordenarR32PorBracket(partidosPorRonda.R32);
+        const r16 = {
+            izquierda: construirRondaDerivada('R16', dividirPartidosLlave(partidosPorRonda.R16, 4).izquierda, [
+                [r32.izquierda[0], r32.izquierda[1]],
+                [r32.izquierda[2], r32.izquierda[3]],
+                [r32.izquierda[4], r32.izquierda[5]],
+                [r32.izquierda[6], r32.izquierda[7]]
+            ]),
+            derecha: construirRondaDerivada('R16', dividirPartidosLlave(partidosPorRonda.R16, 4).derecha, [
+                [r32.derecha[0], r32.derecha[1]],
+                [r32.derecha[2], r32.derecha[3]],
+                [r32.derecha[4], r32.derecha[5]],
+                [r32.derecha[6], r32.derecha[7]]
+            ])
+        };
+        const qf = {
+            izquierda: construirRondaDerivada('QF', dividirPartidosLlave(partidosPorRonda.QF, 2).izquierda, [
+                [r16.izquierda[0], r16.izquierda[1]],
+                [r16.izquierda[2], r16.izquierda[3]]
+            ]),
+            derecha: construirRondaDerivada('QF', dividirPartidosLlave(partidosPorRonda.QF, 2).derecha, [
+                [r16.derecha[0], r16.derecha[1]],
+                [r16.derecha[2], r16.derecha[3]]
+            ])
+        };
+        const sf = {
+            izquierda: construirRondaDerivada('SF', dividirPartidosLlave(partidosPorRonda.SF, 1).izquierda, [
+                [qf.izquierda[0], qf.izquierda[1]]
+            ]),
+            derecha: construirRondaDerivada('SF', dividirPartidosLlave(partidosPorRonda.SF, 1).derecha, [
+                [qf.derecha[0], qf.derecha[1]]
+            ])
+        };
+        const finalReal = ordenarPartidosPorLlave(partidosPorRonda.final)[0];
+        const final = construirPartidoDerivado(
+            'final',
+            finalReal,
+            ganadorComoEquipo(sf.izquierda[0]),
+            ganadorComoEquipo(sf.derecha[0])
+        );
+
+        const tercerPuesto = (partidosPorRonda['3rd'] || [])[0];
+        const tercerPuestoHtml = tercerPuesto
+            ? `<section class="third-place-bracket">
+                    <div class="bracket-round-label">3er puesto</div>
+                    ${construirPartidoLlave(tercerPuesto)}
+               </section>`
+            : '';
+
+        contenedor.innerHTML = `
+            <div class="bracket-board">
+                <div class="bracket-side bracket-side-left">
+                    ${construirColumnaLlave('16vos', r32.izquierda, 'left', 'R32')}
+                    ${construirColumnaLlave('8vos', r16.izquierda, 'left', 'R16')}
+                    ${construirColumnaLlave('4tos', qf.izquierda, 'left', 'QF')}
+                    ${construirColumnaLlave('Semis', sf.izquierda, 'left', 'SF')}
+                </div>
+                <section class="bracket-final">
+                    <div class="bracket-round-label">Final</div>
+                    ${final ? construirPartidoLlave(final) : '<div class="bracket-placeholder">Por definirse</div>'}
+                </section>
+                <div class="bracket-side bracket-side-right">
+                    ${construirColumnaLlave('Semis', sf.derecha, 'right', 'SF')}
+                    ${construirColumnaLlave('4tos', qf.derecha, 'right', 'QF')}
+                    ${construirColumnaLlave('8vos', r16.derecha, 'right', 'R16')}
+                    ${construirColumnaLlave('16vos', r32.derecha, 'right', 'R32')}
+                </div>
+                ${tercerPuestoHtml}
+            </div>
+        `;
     }
 </script>
