@@ -568,6 +568,68 @@
         return equipoDesdePartido(partido, ganador);
     }
 
+    function normalizarClaveEquipo(valor) {
+        return (valor || '')
+            .toString()
+            .trim()
+            .toLowerCase()
+            .normalize('NFD')
+            .replace(/[\u0300-\u036f]/g, '');
+    }
+
+    function clavesEquipo(equipo) {
+        if (!equipo || (!equipo.team && !equipo.code)) {
+            return [];
+        }
+        return [equipo.code, equipo.team]
+            .map(normalizarClaveEquipo)
+            .filter(Boolean)
+            .filter(valor => valor !== 'por clasificar');
+    }
+
+    function clavesParticipantes(partido) {
+        if (!partido) {
+            return [];
+        }
+        return [
+            ...clavesEquipo(equipoDesdePartido(partido, 'home')),
+            ...clavesEquipo(equipoDesdePartido(partido, 'away'))
+        ];
+    }
+
+    function clavesEsperadasDesdePartido(partido) {
+        const ganador = ganadorComoEquipo(partido);
+        if (ganador) {
+            return clavesEquipo(ganador);
+        }
+        return clavesParticipantes(partido);
+    }
+
+    function buscarPartidoRealPorCruce(reales, usados, parFuente) {
+        const clavesEsperadas = new Set([
+            ...clavesEsperadasDesdePartido(parFuente[0]),
+            ...clavesEsperadasDesdePartido(parFuente[1])
+        ]);
+
+        if (!clavesEsperadas.size) {
+            return null;
+        }
+
+        const indice = reales.findIndex((partido, idx) => {
+            if (usados.has(idx)) {
+                return false;
+            }
+            return clavesParticipantes(partido).some(clave => clavesEsperadas.has(clave));
+        });
+
+        if (indice === -1) {
+            return null;
+        }
+
+        usados.add(indice);
+        return reales[indice];
+    }
+
     function construirPartidoDerivado(round, partidoReal, home, away) {
         const base = partidoReal || {};
         return {
@@ -587,10 +649,20 @@
 
     function construirRondaDerivada(round, partidosReales, fuentes) {
         const reales = ordenarPartidosPorLlave(partidosReales);
+        const usados = new Set();
         return fuentes.map((par, idx) => {
             const home = ganadorComoEquipo(par[0]);
             const away = ganadorComoEquipo(par[1]);
-            return construirPartidoDerivado(round, reales[idx], home, away);
+            const partidoReal = buscarPartidoRealPorCruce(reales, usados, par);
+            const tieneCruceEsperado = [
+                ...clavesEsperadasDesdePartido(par[0]),
+                ...clavesEsperadasDesdePartido(par[1])
+            ].length > 0;
+            const partidoFallback = !tieneCruceEsperado && !usados.has(idx) ? reales[idx] : null;
+            if (partidoFallback) {
+                usados.add(idx);
+            }
+            return construirPartidoDerivado(round, partidoReal || partidoFallback, home, away);
         });
     }
 
