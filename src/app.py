@@ -840,17 +840,20 @@ def obtener_datos_tablero():
         ] if principal else []
         ids_principales = {p.get("id") for p in principales}
 
+        fecha_anterior_str = (fecha_hoy_dt - timedelta(days=1)).strftime("%Y-%m-%d")
         fecha_siguiente_str = (fecha_hoy_dt + timedelta(days=1)).strftime("%Y-%m-%d")
+        ventana_proximos = {fecha_hoy_str, fecha_siguiente_str}
+        ventana_jugados = {fecha_anterior_str, fecha_hoy_str}
 
         otros = [
             p for p in no_completados
             if p.get("id") not in ids_principales
-            and p.get("fecha_peru_key", p.get("kickoff_utc", "")[:10]) == fecha_siguiente_str
+            and p.get("fecha_peru_key", p.get("kickoff_utc", "")[:10]) in ventana_proximos
         ]
         jugados = [
             p for p in partidos_ordenados
             if p.get("status") == "completed"
-            and p.get("fecha_peru_key", p.get("kickoff_utc", "")[:10]) == fecha_hoy_str
+            and p.get("fecha_peru_key", p.get("kickoff_utc", "")[:10]) in ventana_jugados
         ]
 
         if resultados_en_vivo:

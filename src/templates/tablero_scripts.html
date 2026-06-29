@@ -328,7 +328,7 @@
         }
 
         htmlJugados = renderizarGruposFecha(partidosJugados, true, true, false);
-        htmlPorJugar = renderizarGruposFecha(partidosPorJugar, false, false, faseActiva !== 'final');
+        htmlPorJugar = renderizarGruposFecha(partidosPorJugar, false, false, false);
 
         if (partidosJugados.length > 0) {
             layout.classList.remove('solo-resto');
