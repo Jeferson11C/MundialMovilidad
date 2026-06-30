@@ -182,16 +182,34 @@
         });
     }
 
+    function tienePenales(partido) {
+        return partido.home_pen !== null
+            && partido.home_pen !== undefined
+            && partido.away_pen !== null
+            && partido.away_pen !== undefined;
+    }
+
+    function marcadorTexto(partido) {
+        if (partido.home_score === null || partido.home_score === undefined || partido.away_score === null || partido.away_score === undefined) {
+            return '';
+        }
+        if (tienePenales(partido)) {
+            return `${partido.home_score}(${partido.home_pen}) - (${partido.away_pen})${partido.away_score}`;
+        }
+        return `${partido.home_score} - ${partido.away_score}`;
+    }
+
+    function marcadorHtml(partido) {
+        const texto = marcadorTexto(partido);
+        return texto ? `<span>${texto}</span>` : '<span class="vs-label">VS</span>';
+    }
+
     function construirPartidoPrincipal(partido, esMultiple) {
         const estado = traducirEstado(partido.status);
         const estadoKey = partido.status ? partido.status.toLowerCase() : '';
         const mostrarMarcador = estadoKey !== 'scheduled';
         const estadoClase = estadoKey ? ` status-${estadoKey}` : '';
-        const g1 = partido.home_score !== null ? partido.home_score : 0;
-        const g2 = partido.away_score !== null ? partido.away_score : 0;
-        const marcadorHtml = mostrarMarcador
-            ? `<span>${g1}</span><span class="divider">-</span><span>${g2}</span>`
-            : `<span class="vs-label">VS</span>`;
+        const marcadorCentroHtml = mostrarMarcador ? marcadorHtml(partido) : `<span class="vs-label">VS</span>`;
         const infoTiempo = estado === 'Programado'
             ? `Programado - ${partido.fecha_peru_str} - ${partido.hora_peru}`
             : estado;
@@ -212,7 +230,7 @@
                         </div>
                     </div>
                     <div class="score-center">
-                        <div class="score">${marcadorHtml}</div>
+                        <div class="score">${marcadorCentroHtml}</div>
                         <div class="tournament-badge">MUNDIAL 2026</div>
                     </div>
                     <div class="team team-principal">
@@ -260,7 +278,7 @@
             const fechaMostrar = p.fecha_peru_str || '';
             const sede = [p.stadium, p.stadium_city, p.stadium_country].filter(Boolean).join(' - ');
             const marcadorFinal = p.home_score !== null && p.away_score !== null
-                ? `<span class="mini-final-label">FIN</span><strong class="mini-score-pill">${p.home_score} - ${p.away_score}</strong>`
+                ? `<span class="mini-final-label">FIN</span><strong class="mini-score-pill">${marcadorTexto(p)}</strong>`
                 : '<span>FIN</span>';
             const centroPartido = esJugado ? marcadorFinal : 'VS';
             return `
@@ -452,8 +470,11 @@
         const score = partido[`${lado}_score`];
         const penales = partido[`${lado}_pen`];
         const claseGanador = ganador === lado ? ' is-winner' : '';
+        const scorePenales = lado === 'home'
+            ? `${score}(${penales})`
+            : `(${penales})${score}`;
         const marcador = score !== null
-            ? `<span class="bracket-score">${score}${penales !== null ? ` (${penales})` : ''}</span>`
+            ? `<span class="bracket-score">${penales !== null ? scorePenales : score}</span>`
             : '<span class="bracket-score">-</span>';
 
         return `

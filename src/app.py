@@ -475,6 +475,28 @@ def obtener_group_name(match):
     return group.replace("GROUP_", "")[-1]
 
 
+def calcular_marcador_base(full_time, penalties):
+    home_score = full_time.get("home")
+    away_score = full_time.get("away")
+    home_pen = penalties.get("home")
+    away_pen = penalties.get("away")
+    tiene_penales = home_pen is not None and away_pen is not None
+
+    if tiene_penales and home_score is not None and away_score is not None:
+        home_score = home_score - home_pen
+        away_score = away_score - away_pen
+
+    return home_score, away_score, home_pen, away_pen
+
+
+def construir_marcador_visual(home_team, away_team, home_score, away_score, home_pen, away_pen):
+    if home_score is None or away_score is None:
+        return None
+    if home_pen is not None and away_pen is not None:
+        return f"{home_team} {home_score}({home_pen}) - ({away_pen}){away_score} {away_team}"
+    return f"{home_team} {home_score} - {away_score} {away_team}"
+
+
 def transformar_partido_football_data(match, match_number, errores_mapeo):
     home = match.get("homeTeam") or {}
     away = match.get("awayTeam") or {}
@@ -483,6 +505,7 @@ def transformar_partido_football_data(match, match_number, errores_mapeo):
     score = match.get("score") or {}
     full_time = score.get("fullTime") or {}
     penalties = score.get("penalties") or {}
+    home_score, away_score, home_pen, away_pen = calcular_marcador_base(full_time, penalties)
     round_name = STAGE_TO_ROUND.get(match.get("stage"))
     status = STATUS_TO_INTERNAL.get(match.get("status"), "scheduled")
     internal_id = INTERNAL_ID_BY_MATCH_NUMBER.get(match_number)
@@ -514,14 +537,22 @@ def transformar_partido_football_data(match, match_number, errores_mapeo):
         "stadium_city": stadium_city,
         "stadium_country": stadium_country,
         "kickoff_utc": match.get("utcDate"),
-        "home_score": full_time.get("home"),
-        "away_score": full_time.get("away"),
-        "home_pen": penalties.get("home"),
-        "away_pen": penalties.get("away"),
+        "home_score": home_score,
+        "away_score": away_score,
+        "home_pen": home_pen,
+        "away_pen": away_pen,
         "status": status,
         "Tipo de Resultado": obtener_tipo_resultado(match),
         "Ganador": obtener_ganador(match, home_info["nombre"], away_info["nombre"], status),
         "Partido": f"{home_info['nombre'] or 'Por definir'} vs {away_info['nombre'] or 'Por definir'}",
+        "marcador_visual": construir_marcador_visual(
+            home_info["nombre"] or "Por definir",
+            away_info["nombre"] or "Por definir",
+            home_score,
+            away_score,
+            home_pen,
+            away_pen,
+        ),
     }
 
 
@@ -793,7 +824,8 @@ def obtener_datos_tablero():
                     "status": datos.get("status", p.get("status")) or p.get("status"),
                     "Tipo de Resultado": datos.get("Tipo de Resultado", p.get("Tipo de Resultado")) or p.get("Tipo de Resultado"),
                     "Ganador": datos.get("Ganador", p.get("Ganador")) or p.get("Ganador"),
-                    "Partido": datos.get("Partido", p.get("Partido")) or p.get("Partido")
+                    "Partido": datos.get("Partido", p.get("Partido")) or p.get("Partido"),
+                    "marcador_visual": datos.get("marcador_visual", p.get("marcador_visual")) or p.get("marcador_visual")
                 })
 
         for p in FIXTURE_ESTATICO:
