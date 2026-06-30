@@ -470,9 +470,7 @@
         const score = partido[`${lado}_score`];
         const penales = partido[`${lado}_pen`];
         const claseGanador = ganador === lado ? ' is-winner' : '';
-        const scorePenales = lado === 'home'
-            ? `${score}(${penales})`
-            : `(${penales})${score}`;
+        const scorePenales = `${score}(${penales})`;
         const marcador = score !== null
             ? `<span class="bracket-score">${penales !== null ? scorePenales : score}</span>`
             : '<span class="bracket-score">-</span>';
