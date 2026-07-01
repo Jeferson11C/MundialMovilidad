@@ -3,6 +3,8 @@ from datetime import datetime, timedelta, timezone
 import json
 import os
 import math
+import threading
+import copy
 import requests
 import polars as pl
 import csv
@@ -45,6 +47,11 @@ except FileNotFoundError:
 
 cache_tablero = {}
 ultima_actualizacion_slot = None
+sync_tablero_en_progreso = False
+cache_lock = threading.Lock()
+ranking_cache = {}
+ranking_en_progreso = set()
+RANKING_CACHE_TTL_SEGUNDOS = 300
 PERU_TZ = timezone(timedelta(hours=-5))
 INTERVALO_ACTUALIZACION_MINUTOS = 10
 
@@ -104,7 +111,6 @@ MESES = {
     5: "mayo", 6: "junio", 7: "julio", 8: "agosto", 
     9: "septiembre", 10: "octubre", 11: "noviembre", 12: "diciembre"
 }
-ruta_ranking = os.path.join(os.path.dirname(__file__), 'ranking_usuarios.json')
 ruta_excel_partidos = os.path.join(os.path.dirname(__file__), 'resultados_partidos.xlsx')
 GOOGLE_SHEET_RANKING_CSV_URL = os.getenv(
     "GOOGLE_SHEET_RANKING_CSV_URL",
@@ -207,60 +213,45 @@ def _leer_ranking_desde_google_sheet(url_csv):
     return {"ranking": ranking}
 
 
+def actualizar_ranking_en_background(fase, url_ranking):
+    global ranking_cache, ranking_en_progreso
+    try:
+        datos = _leer_ranking_desde_google_sheet(url_ranking)
+        with cache_lock:
+            ranking_cache[fase] = {
+                "datos": datos,
+                "actualizado": datetime.now(PERU_TZ),
+            }
+    except Exception as e:
+        print(f"Error cargando ranking desde Google Sheet: {e}")
+    finally:
+        with cache_lock:
+            ranking_en_progreso.discard(fase)
+
+
 def obtener_ranking_usuarios(fase="grupos"):
     url_ranking = (
         GOOGLE_SHEET_RANKING_FINAL_CSV_URL
         if fase == "final"
         else GOOGLE_SHEET_RANKING_CSV_URL
     )
-    try:
-        return _leer_ranking_desde_google_sheet(url_ranking)
-    except Exception as e:
-        print(f"Error cargando ranking desde Google Sheet, usando JSON local: {e}")
+    ahora = datetime.now(PERU_TZ)
+    with cache_lock:
+        cache = ranking_cache.get(fase)
+        en_progreso = fase in ranking_en_progreso
+        if cache and (ahora - cache["actualizado"]).total_seconds() < RANKING_CACHE_TTL_SEGUNDOS:
+            return {**cache["datos"], "actualizando": False}
+        if not en_progreso:
+            ranking_en_progreso.add(fase)
+            threading.Thread(
+                target=actualizar_ranking_en_background,
+                args=(fase, url_ranking),
+                daemon=True,
+            ).start()
 
-    if fase == "final":
-        return {"ranking": []}
-
-    try:
-        with open(ruta_ranking, 'r', encoding='utf-8') as f:
-            registros_apuestas = json.load(f)
-    except Exception as e:
-        print(f"Error cargando ranking: {e}")
-        registros_apuestas = []
-
-    usuarios_consolidados = {}
-
-    for reg in registros_apuestas:
-        usuario = reg.get("CreatedBy")
-        if not usuario:
-            continue
-            
-        if usuario not in usuarios_consolidados:
-            usuarios_consolidados[usuario] = {
-                "nombre": usuario,
-                "puntos": 0,
-                "aciertos": 0
-            }
-        
-        puntos = int(reg.get("PuntajeObtenido", 0))
-        usuarios_consolidados[usuario]["puntos"] += puntos
-        
-        if puntos > 0:
-            usuarios_consolidados[usuario]["aciertos"] += 1
-
-    ranking_ordenado = sorted(
-        list(usuarios_consolidados.values()),
-        key=lambda x: (
-            0 if x.get("puntos", 0) > 0 else 1,
-            -x.get("puntos", 0),
-            x.get("nombre", "").casefold()
-        )
-    )
-
-    for idx, usuario in enumerate(ranking_ordenado, start=1):
-        usuario["posicion"] = idx
-
-    return {"ranking": ranking_ordenado}
+    if cache:
+        return {**cache["datos"], "actualizando": True}
+    return {"ranking": [], "actualizando": True}
 
 
 def enviar_a_google_sheets(df_final):
@@ -774,10 +765,190 @@ def calcular_posiciones_grupos(todos_los_partidos):
     grupos_ordenados.sort(key=lambda x: x["nombre"])
     return grupos_ordenados
 
+
+def construir_cache_tablero(fecha_hoy_dt):
+    fecha_hoy_str = fecha_hoy_dt.strftime("%Y-%m-%d")
+    fixture_cache = copy.deepcopy(FIXTURE_ESTATICO)
+
+    for p in fixture_cache:
+        aplicar_estadio_por_match_number(p)
+        if p.get("home_team"):
+            p["home_team"] = traducir_equipo(p["home_team"])
+        if p.get("away_team"):
+            p["away_team"] = traducir_equipo(p["away_team"])
+
+        fecha_utc_str = p.get("kickoff_utc")
+        if fecha_utc_str:
+            fecha_peru_dt = convertir_utc_a_peru(fecha_utc_str)
+            p["fecha_peru_str"] = f"{fecha_peru_dt.day} de {MESES[fecha_peru_dt.month]}"
+            p["hora_peru"] = fecha_peru_dt.strftime("%H:%M")
+            p["fecha_peru_key"] = fecha_peru_dt.strftime("%Y-%m-%d")
+
+    partidos_ordenados = sorted(fixture_cache, key=lambda x: x.get("kickoff_utc", ""))
+    partidos_grupo = [p for p in partidos_ordenados if p.get("round") == "group"]
+    partidos_finales = [p for p in partidos_ordenados if p.get("round") != "group"]
+    no_completados = [p for p in partidos_ordenados if p.get("status") != "completed"]
+
+    partidos_en_vivo = [p for p in no_completados if p.get("status") in {"live", "in_progress"}]
+    partidos_programados = [
+        p for p in no_completados
+        if p.get("fecha_peru_key", p.get("kickoff_utc", "")[:10]) >= fecha_hoy_str
+    ]
+    if partidos_en_vivo:
+        principal = partidos_en_vivo[0]
+    elif partidos_programados:
+        principal = partidos_programados[0]
+    else:
+        principal = partidos_ordenados[-1] if partidos_ordenados else None
+
+    principal_fecha_key = principal.get("fecha_peru_key", principal.get("kickoff_utc", "")[:10]) if principal else None
+    principal_hora = principal.get("hora_peru") if principal else None
+    principales = [
+        p for p in no_completados
+        if p.get("fecha_peru_key", p.get("kickoff_utc", "")[:10]) == principal_fecha_key
+        and p.get("hora_peru") == principal_hora
+    ] if principal else []
+    ids_principales = {p.get("id") for p in principales}
+
+    fecha_anterior_str = (fecha_hoy_dt - timedelta(days=1)).strftime("%Y-%m-%d")
+    fecha_siguiente_str = (fecha_hoy_dt + timedelta(days=1)).strftime("%Y-%m-%d")
+    ventana_proximos = {fecha_hoy_str, fecha_siguiente_str}
+    ventana_jugados = {fecha_anterior_str, fecha_hoy_str}
+
+    otros = [
+        p for p in no_completados
+        if p.get("id") not in ids_principales
+        and p.get("fecha_peru_key", p.get("kickoff_utc", "")[:10]) in ventana_proximos
+    ]
+    jugados = [
+        p for p in partidos_ordenados
+        if p.get("status") == "completed"
+        and p.get("fecha_peru_key", p.get("kickoff_utc", "")[:10]) in ventana_jugados
+    ]
+
+    es_fase_grupos = fecha_hoy_str < "2026-06-28"
+    partidos_eliminatoria = []
+    if not es_fase_grupos:
+        eliminatorias = [p for p in fixture_cache if p.get("round") != "group"]
+        ronda_activa = "R32"
+        for p in eliminatorias:
+            if p.get("kickoff_utc", "")[:10] >= fecha_hoy_str:
+                ronda_activa = p.get("round")
+                break
+        if fecha_hoy_str > "2026-07-19":
+            ronda_activa = "final"
+        partidos_eliminatoria = [p for p in fixture_cache if p.get("round") == ronda_activa]
+
+    tablas_grupos = calcular_posiciones_grupos(fixture_cache)
+    equipos_clasificados = {
+        equipo
+        for p in partidos_finales
+        if p.get("round") == "R32"
+        for equipo in (p.get("home_team"), p.get("away_team"))
+        if equipo
+    }
+    equipos_clasificados.update(EQUIPOS_CLASIFICADOS_BASE)
+    for grupo in tablas_grupos:
+        for equipo in grupo.get("equipos", []):
+            equipo["clasificado"] = (
+                equipo.get("codigo") in CODIGOS_CLASIFICADOS_BASE
+                or equipo.get("nombre") in equipos_clasificados
+            )
+
+    return {
+        "principal": principal,
+        "principales": principales,
+        "otros": otros,
+        "jugados": jugados,
+        "grupos": tablas_grupos,
+        "partidos_grupo": partidos_grupo,
+        "partidos_finales": partidos_finales,
+        "es_fase_grupos": es_fase_grupos,
+        "partidos_eliminatoria": partidos_eliminatoria,
+    }
+
+
+def sincronizar_tablero_en_background(slot_actualizacion):
+    global cache_tablero, ultima_actualizacion_slot, sync_tablero_en_progreso
+    try:
+        fecha_hoy_dt = datetime.now(PERU_TZ)
+        print(f"Sincronizando marcadores en background... slot Peru: {slot_actualizacion}")
+        resultados_en_vivo = obtener_partidos_para_sincronizar(fecha_hoy_dt)
+
+        diccionario_resultados = {
+            r.get("id"): r
+            for r in resultados_en_vivo
+            if r.get("id") is not None
+        }
+
+        if diccionario_resultados:
+            for p in FIXTURE_ESTATICO:
+                id_p = p.get("id")
+                if id_p in diccionario_resultados:
+                    datos = diccionario_resultados[id_p]
+                    p.update({
+                        "match_number": datos.get("match_number", p.get("match_number")) or p.get("match_number"),
+                        "round": datos.get("round", p.get("round")) or p.get("round"),
+                        "group_name": datos.get("group_name", p.get("group_name")) or p.get("group_name"),
+                        "home_team_id": datos.get("home_team_id", p.get("home_team_id")) or p.get("home_team_id"),
+                        "home_team": datos.get("home_team", p.get("home_team")) or p.get("home_team"),
+                        "home_team_code": datos.get("home_team_code", p.get("home_team_code")) or p.get("home_team_code"),
+                        "home_team_flag": datos.get("home_team_flag", p.get("home_team_flag")) or p.get("home_team_flag"),
+                        "away_team_id": datos.get("away_team_id", p.get("away_team_id")) or p.get("away_team_id"),
+                        "away_team": datos.get("away_team", p.get("away_team")) or p.get("away_team"),
+                        "away_team_code": datos.get("away_team_code", p.get("away_team_code")) or p.get("away_team_code"),
+                        "away_team_flag": datos.get("away_team_flag", p.get("away_team_flag")) or p.get("away_team_flag"),
+                        "stadium_id": datos.get("stadium_id", p.get("stadium_id")) or p.get("stadium_id"),
+                        "stadium": datos.get("stadium", p.get("stadium")) or p.get("stadium"),
+                        "stadium_city": datos.get("stadium_city", p.get("stadium_city")) or p.get("stadium_city"),
+                        "stadium_country": datos.get("stadium_country", p.get("stadium_country")) or p.get("stadium_country"),
+                        "kickoff_utc": datos.get("kickoff_utc", p.get("kickoff_utc")) or p.get("kickoff_utc"),
+                        "home_score": datos.get("home_score"),
+                        "away_score": datos.get("away_score"),
+                        "home_pen": datos.get("home_pen"),
+                        "away_pen": datos.get("away_pen"),
+                        "status": datos.get("status", p.get("status")) or p.get("status"),
+                        "Tipo de Resultado": datos.get("Tipo de Resultado", p.get("Tipo de Resultado")) or p.get("Tipo de Resultado"),
+                        "Ganador": datos.get("Ganador", p.get("Ganador")) or p.get("Ganador"),
+                        "Partido": datos.get("Partido", p.get("Partido")) or p.get("Partido"),
+                        "marcador_visual": datos.get("marcador_visual", p.get("marcador_visual")) or p.get("marcador_visual"),
+                    })
+
+            for p in FIXTURE_ESTATICO:
+                aplicar_estadio_por_match_number(p)
+            guardar_fixture_json(FIXTURE_ESTATICO)
+            guardar_datos_excel(FIXTURE_ESTATICO)
+        else:
+            print("Sheet no actualizado porque la API no devolvio datos.")
+
+        nuevo_cache = construir_cache_tablero(datetime.now(PERU_TZ))
+        with cache_lock:
+            cache_tablero = nuevo_cache
+            ultima_actualizacion_slot = slot_actualizacion
+    finally:
+        with cache_lock:
+            sync_tablero_en_progreso = False
+
+
 def obtener_datos_tablero():
-    global cache_tablero, ultima_actualizacion_slot
+    global cache_tablero, ultima_actualizacion_slot, sync_tablero_en_progreso
     fecha_hoy_dt = datetime.now(PERU_TZ)
     slot_actualizacion = obtener_slot_actualizacion_peru(fecha_hoy_dt)
+    with cache_lock:
+        if not cache_tablero:
+            cache_tablero = construir_cache_tablero(fecha_hoy_dt)
+
+        debe_refrescar = slot_actualizacion != ultima_actualizacion_slot
+        if debe_refrescar and not sync_tablero_en_progreso:
+            sync_tablero_en_progreso = True
+            threading.Thread(
+                target=sincronizar_tablero_en_background,
+                args=(slot_actualizacion,),
+                daemon=True,
+            ).start()
+
+        return {**cache_tablero, "actualizando": sync_tablero_en_progreso}
+
     debe_sincronizar = (
         not cache_tablero
         or (slot_actualizacion is not None and slot_actualizacion != ultima_actualizacion_slot)

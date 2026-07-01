@@ -25,7 +25,8 @@
     "phase": null,
     "Tipo de Resultado": "Regular",
     "Ganador": "Mexico",
-    "Partido": "Mexico vs South Africa"
+    "Partido": "Mexico vs South Africa",
+    "marcador_visual": "Mexico 2 - 0 South Africa"
   },
   {
     "id": 1,
@@ -53,7 +54,8 @@
     "phase": null,
     "Tipo de Resultado": "Regular",
     "Ganador": "Korea Republic",
-    "Partido": "Korea Republic vs Czechia"
+    "Partido": "Korea Republic vs Czechia",
+    "marcador_visual": "Korea Republic 2 - 1 Czechia"
   },
   {
     "id": 7,
@@ -81,7 +83,8 @@
     "phase": null,
     "Tipo de Resultado": "Regular",
     "Ganador": "Empate",
-    "Partido": "Canada vs Bosnia-Herzegovina"
+    "Partido": "Canada vs Bosnia-Herzegovina",
+    "marcador_visual": "Canada 1 - 1 Bosnia-Herzegovina"
   },
   {
     "id": 20,
@@ -109,7 +112,8 @@
     "phase": null,
     "Tipo de Resultado": "Regular",
     "Ganador": "USA",
-    "Partido": "USA vs Paraguay"
+    "Partido": "USA vs Paraguay",
+    "marcador_visual": "USA 4 - 1 Paraguay"
   },
   {
     "id": 9,
@@ -137,7 +141,8 @@
     "phase": null,
     "Tipo de Resultado": "Regular",
     "Ganador": "Empate",
-    "Partido": "Qatar vs Switzerland"
+    "Partido": "Qatar vs Switzerland",
+    "marcador_visual": "Qatar 1 - 1 Switzerland"
   },
   {
     "id": 13,
@@ -165,7 +170,8 @@
     "phase": null,
     "Tipo de Resultado": "Regular",
     "Ganador": "Empate",
-    "Partido": "Brazil vs Morocco"
+    "Partido": "Brazil vs Morocco",
+    "marcador_visual": "Brazil 1 - 1 Morocco"
   },
   {
     "id": 15,
@@ -193,7 +199,8 @@
     "phase": null,
     "Tipo de Resultado": "Regular",
     "Ganador": "Scotland",
-    "Partido": "Haiti vs Scotland"
+    "Partido": "Haiti vs Scotland",
+    "marcador_visual": "Haiti 0 - 1 Scotland"
   },
   {
     "id": 19,
@@ -221,7 +228,8 @@
     "phase": null,
     "Tipo de Resultado": "Regular",
     "Ganador": "Australia",
-    "Partido": "Australia vs Turkey"
+    "Partido": "Australia vs Turkey",
+    "marcador_visual": "Australia 2 - 0 Turkey"
   },
   {
     "id": 26,
@@ -249,7 +257,8 @@
     "phase": null,
     "Tipo de Resultado": "Regular",
     "Ganador": "Germany",
-    "Partido": "Germany vs Curaçao"
+    "Partido": "Germany vs Curaçao",
+    "marcador_visual": "Germany 7 - 1 Curaçao"
   },
   {
     "id": 34,
@@ -277,7 +286,8 @@
     "phase": null,
     "Tipo de Resultado": "Regular",
     "Ganador": "Empate",
-    "Partido": "Netherlands vs Japan"
+    "Partido": "Netherlands vs Japan",
+    "marcador_visual": "Netherlands 2 - 2 Japan"
   },
   {
     "id": 28,
@@ -305,7 +315,8 @@
     "phase": null,
     "Tipo de Resultado": "Regular",
     "Ganador": "Côte d'Ivoire",
-    "Partido": "Côte d'Ivoire vs Ecuador"
+    "Partido": "Côte d'Ivoire vs Ecuador",
+    "marcador_visual": "Côte d'Ivoire 1 - 0 Ecuador"
   },
   {
     "id": 33,
@@ -333,7 +344,8 @@
     "phase": null,
     "Tipo de Resultado": "Regular",
     "Ganador": "Sweden",
-    "Partido": "Sweden vs Tunisia"
+    "Partido": "Sweden vs Tunisia",
+    "marcador_visual": "Sweden 5 - 1 Tunisia"
   },
   {
     "id": 43,
@@ -361,7 +373,8 @@
     "phase": null,
     "Tipo de Resultado": "Regular",
     "Ganador": "Empate",
-    "Partido": "Spain vs Cabo Verde"
+    "Partido": "Spain vs Cabo Verde",
+    "marcador_visual": "Spain 0 - 0 Cabo Verde"
   },
   {
     "id": 40,
@@ -389,7 +402,8 @@
     "phase": null,
     "Tipo de Resultado": "Regular",
     "Ganador": "Empate",
-    "Partido": "Belgium vs Egypt"
+    "Partido": "Belgium vs Egypt",
+    "marcador_visual": "Belgium 1 - 1 Egypt"
   },
   {
     "id": 45,
@@ -417,7 +431,8 @@
     "phase": null,
     "Tipo de Resultado": "Regular",
     "Ganador": "Empate",
-    "Partido": "Saudi Arabia vs Uruguay"
+    "Partido": "Saudi Arabia vs Uruguay",
+    "marcador_visual": "Saudi Arabia 1 - 1 Uruguay"
   },
   {
     "id": 37,
@@ -445,7 +460,8 @@
     "phase": null,
     "Tipo de Resultado": "Regular",
     "Ganador": "Empate",
-    "Partido": "IR Iran vs New Zealand"
+    "Partido": "IR Iran vs New Zealand",
+    "marcador_visual": "IR Iran 2 - 2 New Zealand"
   },
   {
     "id": 52,
@@ -473,7 +489,8 @@
     "phase": null,
     "Tipo de Resultado": "Regular",
     "Ganador": "France",
-    "Partido": "France vs Senegal"
+    "Partido": "France vs Senegal",
+    "marcador_visual": "France 3 - 1 Senegal"
   },
   {
     "id": 51,
@@ -501,7 +518,8 @@
     "phase": null,
     "Tipo de Resultado": "Regular",
     "Ganador": "Norway",
-    "Partido": "Iraq vs Norway"
+    "Partido": "Iraq vs Norway",
+    "marcador_visual": "Iraq 1 - 4 Norway"
   },
   {
     "id": 58,
@@ -529,7 +547,8 @@
     "phase": null,
     "Tipo de Resultado": "Regular",
     "Ganador": "Argentina",
-    "Partido": "Argentina vs Algeria"
+    "Partido": "Argentina vs Algeria",
+    "marcador_visual": "Argentina 3 - 0 Algeria"
   },
   {
     "id": 55,
@@ -557,7 +576,8 @@
     "phase": null,
     "Tipo de Resultado": "Regular",
     "Ganador": "Austria",
-    "Partido": "Austria vs Jordan"
+    "Partido": "Austria vs Jordan",
+    "marcador_visual": "Austria 3 - 1 Jordan"
   },
   {
     "id": 61,
@@ -585,7 +605,8 @@
     "phase": null,
     "Tipo de Resultado": "Regular",
     "Ganador": "Empate",
-    "Partido": "Portugal vs Congo DR"
+    "Partido": "Portugal vs Congo DR",
+    "marcador_visual": "Portugal 1 - 1 Congo DR"
   },
   {
     "id": 68,
@@ -613,7 +634,8 @@
     "phase": null,
     "Tipo de Resultado": "Regular",
     "Ganador": "England",
-    "Partido": "England vs Croatia"
+    "Partido": "England vs Croatia",
+    "marcador_visual": "England 4 - 2 Croatia"
   },
   {
     "id": 70,
@@ -641,7 +663,8 @@
     "phase": null,
     "Tipo de Resultado": "Regular",
     "Ganador": "Ghana",
-    "Partido": "Ghana vs Panama"
+    "Partido": "Ghana vs Panama",
+    "marcador_visual": "Ghana 1 - 0 Panama"
   },
   {
     "id": 63,
@@ -669,7 +692,8 @@
     "phase": null,
     "Tipo de Resultado": "Regular",
     "Ganador": "Colombia",
-    "Partido": "Uzbekistan vs Colombia"
+    "Partido": "Uzbekistan vs Colombia",
+    "marcador_visual": "Uzbekistan 1 - 3 Colombia"
   },
   {
     "id": 3,
@@ -697,7 +721,8 @@
     "phase": null,
     "Tipo de Resultado": "Regular",
     "Ganador": "Empate",
-    "Partido": "Czechia vs South Africa"
+    "Partido": "Czechia vs South Africa",
+    "marcador_visual": "Czechia 1 - 1 South Africa"
   },
   {
     "id": 8,
@@ -725,7 +750,8 @@
     "phase": null,
     "Tipo de Resultado": "Regular",
     "Ganador": "Switzerland",
-    "Partido": "Switzerland vs Bosnia-Herzegovina"
+    "Partido": "Switzerland vs Bosnia-Herzegovina",
+    "marcador_visual": "Switzerland 4 - 1 Bosnia-Herzegovina"
   },
   {
     "id": 10,
@@ -753,7 +779,8 @@
     "phase": null,
     "Tipo de Resultado": "Regular",
     "Ganador": "Canada",
-    "Partido": "Canada vs Qatar"
+    "Partido": "Canada vs Qatar",
+    "marcador_visual": "Canada 6 - 0 Qatar"
   },
   {
     "id": 4,
@@ -781,7 +808,8 @@
     "phase": null,
     "Tipo de Resultado": "Regular",
     "Ganador": "Mexico",
-    "Partido": "Mexico vs Korea Republic"
+    "Partido": "Mexico vs Korea Republic",
+    "marcador_visual": "Mexico 1 - 0 Korea Republic"
   },
   {
     "id": 22,
@@ -809,7 +837,8 @@
     "phase": null,
     "Tipo de Resultado": "Regular",
     "Ganador": "USA",
-    "Partido": "USA vs Australia"
+    "Partido": "USA vs Australia",
+    "marcador_visual": "USA 2 - 0 Australia"
   },
   {
     "id": 14,
@@ -837,7 +866,8 @@
     "phase": null,
     "Tipo de Resultado": "Regular",
     "Ganador": "Morocco",
-    "Partido": "Scotland vs Morocco"
+    "Partido": "Scotland vs Morocco",
+    "marcador_visual": "Scotland 0 - 1 Morocco"
   },
   {
     "id": 16,
@@ -865,7 +895,8 @@
     "phase": null,
     "Tipo de Resultado": "Regular",
     "Ganador": "Brazil",
-    "Partido": "Brazil vs Haiti"
+    "Partido": "Brazil vs Haiti",
+    "marcador_visual": "Brazil 3 - 0 Haiti"
   },
   {
     "id": 21,
@@ -893,7 +924,8 @@
     "phase": null,
     "Tipo de Resultado": "Regular",
     "Ganador": "Paraguay",
-    "Partido": "Turkey vs Paraguay"
+    "Partido": "Turkey vs Paraguay",
+    "marcador_visual": "Turkey 0 - 1 Paraguay"
   },
   {
     "id": 31,
@@ -921,7 +953,8 @@
     "phase": null,
     "Tipo de Resultado": "Regular",
     "Ganador": "Netherlands",
-    "Partido": "Netherlands vs Sweden"
+    "Partido": "Netherlands vs Sweden",
+    "marcador_visual": "Netherlands 5 - 1 Sweden"
   },
   {
     "id": 29,
@@ -949,7 +982,8 @@
     "phase": null,
     "Tipo de Resultado": "Regular",
     "Ganador": "Germany",
-    "Partido": "Germany vs Côte d'Ivoire"
+    "Partido": "Germany vs Côte d'Ivoire",
+    "marcador_visual": "Germany 2 - 1 Côte d'Ivoire"
   },
   {
     "id": 25,
@@ -977,7 +1011,8 @@
     "phase": null,
     "Tipo de Resultado": "Regular",
     "Ganador": "Empate",
-    "Partido": "Ecuador vs Curaçao"
+    "Partido": "Ecuador vs Curaçao",
+    "marcador_visual": "Ecuador 0 - 0 Curaçao"
   },
   {
     "id": 35,
@@ -1005,7 +1040,8 @@
     "phase": null,
     "Tipo de Resultado": "Regular",
     "Ganador": "Japan",
-    "Partido": "Tunisia vs Japan"
+    "Partido": "Tunisia vs Japan",
+    "marcador_visual": "Tunisia 0 - 4 Japan"
   },
   {
     "id": 47,
@@ -1033,7 +1069,8 @@
     "phase": null,
     "Tipo de Resultado": "Regular",
     "Ganador": "Spain",
-    "Partido": "Spain vs Saudi Arabia"
+    "Partido": "Spain vs Saudi Arabia",
+    "marcador_visual": "Spain 4 - 0 Saudi Arabia"
   },
   {
     "id": 38,
@@ -1061,7 +1098,8 @@
     "phase": null,
     "Tipo de Resultado": "Regular",
     "Ganador": "Empate",
-    "Partido": "Belgium vs IR Iran"
+    "Partido": "Belgium vs IR Iran",
+    "marcador_visual": "Belgium 0 - 0 IR Iran"
   },
   {
     "id": 44,
@@ -1089,7 +1127,8 @@
     "phase": null,
     "Tipo de Resultado": "Regular",
     "Ganador": "Empate",
-    "Partido": "Uruguay vs Cabo Verde"
+    "Partido": "Uruguay vs Cabo Verde",
+    "marcador_visual": "Uruguay 2 - 2 Cabo Verde"
   },
   {
     "id": 41,
@@ -1117,7 +1156,8 @@
     "phase": null,
     "Tipo de Resultado": "Regular",
     "Ganador": "Egypt",
-    "Partido": "New Zealand vs Egypt"
+    "Partido": "New Zealand vs Egypt",
+    "marcador_visual": "New Zealand 1 - 3 Egypt"
   },
   {
     "id": 56,
@@ -1145,7 +1185,8 @@
     "phase": null,
     "Tipo de Resultado": "Regular",
     "Ganador": "Argentina",
-    "Partido": "Argentina vs Austria"
+    "Partido": "Argentina vs Austria",
+    "marcador_visual": "Argentina 2 - 0 Austria"
   },
   {
     "id": 49,
@@ -1173,7 +1214,8 @@
     "phase": null,
     "Tipo de Resultado": "Regular",
     "Ganador": "France",
-    "Partido": "France vs Iraq"
+    "Partido": "France vs Iraq",
+    "marcador_visual": "France 3 - 0 Iraq"
   },
   {
     "id": 53,
@@ -1201,7 +1243,8 @@
     "phase": null,
     "Tipo de Resultado": "Regular",
     "Ganador": "Norway",
-    "Partido": "Norway vs Senegal"
+    "Partido": "Norway vs Senegal",
+    "marcador_visual": "Norway 3 - 2 Senegal"
   },
   {
     "id": 59,
@@ -1229,7 +1272,8 @@
     "phase": null,
     "Tipo de Resultado": "Regular",
     "Ganador": "Algeria",
-    "Partido": "Jordan vs Algeria"
+    "Partido": "Jordan vs Algeria",
+    "marcador_visual": "Jordan 1 - 2 Algeria"
   },
   {
     "id": 64,
@@ -1257,7 +1301,8 @@
     "phase": null,
     "Tipo de Resultado": "Regular",
     "Ganador": "Portugal",
-    "Partido": "Portugal vs Uzbekistan"
+    "Partido": "Portugal vs Uzbekistan",
+    "marcador_visual": "Portugal 5 - 0 Uzbekistan"
   },
   {
     "id": 71,
@@ -1285,7 +1330,8 @@
     "phase": null,
     "Tipo de Resultado": "Regular",
     "Ganador": "Empate",
-    "Partido": "England vs Ghana"
+    "Partido": "England vs Ghana",
+    "marcador_visual": "England 0 - 0 Ghana"
   },
   {
     "id": 67,
@@ -1313,7 +1359,8 @@
     "phase": null,
     "Tipo de Resultado": "Regular",
     "Ganador": "Croatia",
-    "Partido": "Panama vs Croatia"
+    "Partido": "Panama vs Croatia",
+    "marcador_visual": "Panama 0 - 1 Croatia"
   },
   {
     "id": 62,
@@ -1341,7 +1388,8 @@
     "phase": null,
     "Tipo de Resultado": "Regular",
     "Ganador": "Colombia",
-    "Partido": "Colombia vs Congo DR"
+    "Partido": "Colombia vs Congo DR",
+    "marcador_visual": "Colombia 1 - 0 Congo DR"
   },
   {
     "id": 11,
@@ -1369,7 +1417,8 @@
     "phase": null,
     "Tipo de Resultado": "Regular",
     "Ganador": "Bosnia-Herzegovina",
-    "Partido": "Bosnia-Herzegovina vs Qatar"
+    "Partido": "Bosnia-Herzegovina vs Qatar",
+    "marcador_visual": "Bosnia-Herzegovina 3 - 1 Qatar"
   },
   {
     "id": 12,
@@ -1397,7 +1446,8 @@
     "phase": null,
     "Tipo de Resultado": "Regular",
     "Ganador": "Switzerland",
-    "Partido": "Switzerland vs Canada"
+    "Partido": "Switzerland vs Canada",
+    "marcador_visual": "Switzerland 2 - 1 Canada"
   },
   {
     "id": 18,
@@ -1425,7 +1475,8 @@
     "phase": null,
     "Tipo de Resultado": "Regular",
     "Ganador": "Brazil",
-    "Partido": "Scotland vs Brazil"
+    "Partido": "Scotland vs Brazil",
+    "marcador_visual": "Scotland 0 - 3 Brazil"
   },
   {
     "id": 17,
@@ -1453,7 +1504,8 @@
     "phase": null,
     "Tipo de Resultado": "Regular",
     "Ganador": "Morocco",
-    "Partido": "Morocco vs Haiti"
+    "Partido": "Morocco vs Haiti",
+    "marcador_visual": "Morocco 4 - 2 Haiti"
   },
   {
     "id": 6,
@@ -1481,7 +1533,8 @@
     "phase": null,
     "Tipo de Resultado": "Regular",
     "Ganador": "Mexico",
-    "Partido": "Czechia vs Mexico"
+    "Partido": "Czechia vs Mexico",
+    "marcador_visual": "Czechia 0 - 3 Mexico"
   },
   {
     "id": 5,
@@ -1509,7 +1562,8 @@
     "phase": null,
     "Tipo de Resultado": "Regular",
     "Ganador": "South Africa",
-    "Partido": "South Africa vs Korea Republic"
+    "Partido": "South Africa vs Korea Republic",
+    "marcador_visual": "South Africa 1 - 0 Korea Republic"
   },
   {
     "id": 30,
@@ -1537,7 +1591,8 @@
     "phase": null,
     "Tipo de Resultado": "Regular",
     "Ganador": "Côte d'Ivoire",
-    "Partido": "Curaçao vs Côte d'Ivoire"
+    "Partido": "Curaçao vs Côte d'Ivoire",
+    "marcador_visual": "Curaçao 0 - 2 Côte d'Ivoire"
   },
   {
     "id": 27,
@@ -1565,7 +1620,8 @@
     "phase": null,
     "Tipo de Resultado": "Regular",
     "Ganador": "Ecuador",
-    "Partido": "Ecuador vs Germany"
+    "Partido": "Ecuador vs Germany",
+    "marcador_visual": "Ecuador 2 - 1 Germany"
   },
   {
     "id": 36,
@@ -1593,7 +1649,8 @@
     "phase": null,
     "Tipo de Resultado": "Regular",
     "Ganador": "Netherlands",
-    "Partido": "Tunisia vs Netherlands"
+    "Partido": "Tunisia vs Netherlands",
+    "marcador_visual": "Tunisia 1 - 3 Netherlands"
   },
   {
     "id": 32,
@@ -1621,7 +1678,8 @@
     "phase": null,
     "Tipo de Resultado": "Regular",
     "Ganador": "Empate",
-    "Partido": "Japan vs Sweden"
+    "Partido": "Japan vs Sweden",
+    "marcador_visual": "Japan 1 - 1 Sweden"
   },
   {
     "id": 24,
@@ -1649,7 +1707,8 @@
     "phase": null,
     "Tipo de Resultado": "Regular",
     "Ganador": "Turkey",
-    "Partido": "Turkey vs USA"
+    "Partido": "Turkey vs USA",
+    "marcador_visual": "Turkey 3 - 2 USA"
   },
   {
     "id": 23,
@@ -1677,7 +1736,8 @@
     "phase": null,
     "Tipo de Resultado": "Regular",
     "Ganador": "Empate",
-    "Partido": "Paraguay vs Australia"
+    "Partido": "Paraguay vs Australia",
+    "marcador_visual": "Paraguay 0 - 0 Australia"
   },
   {
     "id": 50,
@@ -1705,7 +1765,8 @@
     "phase": null,
     "Tipo de Resultado": "Regular",
     "Ganador": "Senegal",
-    "Partido": "Senegal vs Iraq"
+    "Partido": "Senegal vs Iraq",
+    "marcador_visual": "Senegal 5 - 0 Iraq"
   },
   {
     "id": 54,
@@ -1733,7 +1794,8 @@
     "phase": null,
     "Tipo de Resultado": "Regular",
     "Ganador": "France",
-    "Partido": "Norway vs France"
+    "Partido": "Norway vs France",
+    "marcador_visual": "Norway 1 - 4 France"
   },
   {
     "id": 48,
@@ -1761,7 +1823,8 @@
     "phase": null,
     "Tipo de Resultado": "Regular",
     "Ganador": "Empate",
-    "Partido": "Cabo Verde vs Saudi Arabia"
+    "Partido": "Cabo Verde vs Saudi Arabia",
+    "marcador_visual": "Cabo Verde 0 - 0 Saudi Arabia"
   },
   {
     "id": 46,
@@ -1789,7 +1852,8 @@
     "phase": null,
     "Tipo de Resultado": "Regular",
     "Ganador": "Spain",
-    "Partido": "Uruguay vs Spain"
+    "Partido": "Uruguay vs Spain",
+    "marcador_visual": "Uruguay 0 - 1 Spain"
   },
   {
     "id": 39,
@@ -1817,7 +1881,8 @@
     "phase": null,
     "Tipo de Resultado": "Regular",
     "Ganador": "Empate",
-    "Partido": "Egypt vs IR Iran"
+    "Partido": "Egypt vs IR Iran",
+    "marcador_visual": "Egypt 1 - 1 IR Iran"
   },
   {
     "id": 42,
@@ -1845,7 +1910,8 @@
     "phase": null,
     "Tipo de Resultado": "Regular",
     "Ganador": "Belgium",
-    "Partido": "New Zealand vs Belgium"
+    "Partido": "New Zealand vs Belgium",
+    "marcador_visual": "New Zealand 1 - 5 Belgium"
   },
   {
     "id": 69,
@@ -1873,7 +1939,8 @@
     "phase": null,
     "Tipo de Resultado": "Regular",
     "Ganador": "England",
-    "Partido": "Panama vs England"
+    "Partido": "Panama vs England",
+    "marcador_visual": "Panama 0 - 2 England"
   },
   {
     "id": 72,
@@ -1901,7 +1968,8 @@
     "phase": null,
     "Tipo de Resultado": "Regular",
     "Ganador": "Croatia",
-    "Partido": "Croatia vs Ghana"
+    "Partido": "Croatia vs Ghana",
+    "marcador_visual": "Croatia 2 - 1 Ghana"
   },
   {
     "id": 65,
@@ -1929,7 +1997,8 @@
     "phase": null,
     "Tipo de Resultado": "Regular",
     "Ganador": "Congo DR",
-    "Partido": "Congo DR vs Uzbekistan"
+    "Partido": "Congo DR vs Uzbekistan",
+    "marcador_visual": "Congo DR 3 - 1 Uzbekistan"
   },
   {
     "id": 66,
@@ -1957,7 +2026,8 @@
     "phase": null,
     "Tipo de Resultado": "Regular",
     "Ganador": "Empate",
-    "Partido": "Colombia vs Portugal"
+    "Partido": "Colombia vs Portugal",
+    "marcador_visual": "Colombia 0 - 0 Portugal"
   },
   {
     "id": 57,
@@ -1985,7 +2055,8 @@
     "phase": null,
     "Tipo de Resultado": "Regular",
     "Ganador": "Empate",
-    "Partido": "Algeria vs Austria"
+    "Partido": "Algeria vs Austria",
+    "marcador_visual": "Algeria 3 - 3 Austria"
   },
   {
     "id": 60,
@@ -2013,7 +2084,8 @@
     "phase": null,
     "Tipo de Resultado": "Regular",
     "Ganador": "Argentina",
-    "Partido": "Jordan vs Argentina"
+    "Partido": "Jordan vs Argentina",
+    "marcador_visual": "Jordan 1 - 3 Argentina"
   },
   {
     "id": 82,
@@ -2033,15 +2105,16 @@
     "stadium_city": "Inglewood, CA",
     "stadium_country": "USA",
     "kickoff_utc": "2026-06-28T19:00:00Z",
-    "home_score": null,
-    "away_score": null,
+    "home_score": 0,
+    "away_score": 1,
     "home_pen": null,
     "away_pen": null,
-    "status": "scheduled",
+    "status": "completed",
     "phase": null,
     "Tipo de Resultado": "Regular",
-    "Ganador": "Por jugar",
-    "Partido": "South Africa vs Canada"
+    "Ganador": "Canada",
+    "Partido": "South Africa vs Canada",
+    "marcador_visual": "South Africa 0 - 1 Canada"
   },
   {
     "id": 95,
@@ -2061,15 +2134,16 @@
     "stadium_city": "Houston, TX",
     "stadium_country": "USA",
     "kickoff_utc": "2026-06-30T01:00:00Z",
-    "home_score": null,
-    "away_score": null,
-    "home_pen": null,
-    "away_pen": null,
-    "status": "scheduled",
+    "home_score": 1,
+    "away_score": 1,
+    "home_pen": 2,
+    "away_pen": 3,
+    "status": "completed",
     "phase": null,
-    "Tipo de Resultado": "Regular",
-    "Ganador": "Por jugar",
-    "Partido": "Netherlands vs Morocco"
+    "Tipo de Resultado": "Penales",
+    "Ganador": "Morocco",
+    "Partido": "Netherlands vs Morocco",
+    "marcador_visual": "Netherlands 1(2) - (3)1 Morocco"
   },
   {
     "id": 93,
@@ -2089,15 +2163,16 @@
     "stadium_city": "Foxborough, MA",
     "stadium_country": "USA",
     "kickoff_utc": "2026-06-29T17:00:00Z",
-    "home_score": null,
-    "away_score": null,
+    "home_score": 2,
+    "away_score": 1,
     "home_pen": null,
     "away_pen": null,
-    "status": "scheduled",
+    "status": "completed",
     "phase": null,
     "Tipo de Resultado": "Regular",
-    "Ganador": "Por jugar",
-    "Partido": "Brazil vs Japan"
+    "Ganador": "Brazil",
+    "Partido": "Brazil vs Japan",
+    "marcador_visual": "Brazil 2 - 1 Japan"
   },
   {
     "id": 101,
@@ -2108,52 +2183,54 @@
     "home_team": "Germany",
     "home_team_code": "GER",
     "home_team_flag": "https://crests.football-data.org/759.svg",
-    "away_team_id": null,
-    "away_team": null,
-    "away_team_code": null,
-    "away_team_flag": null,
+    "away_team_id": 15,
+    "away_team": "Paraguay",
+    "away_team_code": "PAR",
+    "away_team_flag": "https://crests.football-data.org/761.svg",
     "stadium_id": 15,
     "stadium": "Estadio BBVA",
     "stadium_city": "Monterrey",
     "stadium_country": "Mexico",
     "kickoff_utc": "2026-06-29T20:30:00Z",
-    "home_score": null,
-    "away_score": null,
-    "home_pen": null,
-    "away_pen": null,
-    "status": "scheduled",
+    "home_score": 1,
+    "away_score": 1,
+    "home_pen": 3,
+    "away_pen": 4,
+    "status": "completed",
     "phase": null,
-    "Tipo de Resultado": "Regular",
-    "Ganador": "Por jugar",
-    "Partido": "Germany vs Por definir"
+    "Tipo de Resultado": "Penales",
+    "Ganador": "Paraguay",
+    "Partido": "Germany vs Paraguay",
+    "marcador_visual": "Germany 1(3) - (4)1 Paraguay"
   },
   {
     "id": 79,
     "match_number": 78,
     "round": "R32",
     "group_name": null,
-    "home_team_id": null,
-    "home_team": null,
-    "home_team_code": null,
-    "home_team_flag": null,
-    "away_team_id": null,
-    "away_team": null,
-    "away_team_code": null,
-    "away_team_flag": null,
+    "home_team_id": 33,
+    "home_team": "France",
+    "home_team_code": "FRA",
+    "home_team_flag": "https://crests.football-data.org/773.svg",
+    "away_team_id": 24,
+    "away_team": "Sweden",
+    "away_team_code": "SWE",
+    "away_team_flag": "https://crests.football-data.org/792.svg",
     "stadium_id": 2,
     "stadium": "AT&T Stadium",
     "stadium_city": "Arlington, TX",
     "stadium_country": "USA",
     "kickoff_utc": "2026-06-30T21:00:00Z",
-    "home_score": null,
-    "away_score": null,
+    "home_score": 3,
+    "away_score": 0,
     "home_pen": null,
     "away_pen": null,
-    "status": "scheduled",
+    "status": "completed",
     "phase": null,
     "Tipo de Resultado": "Regular",
-    "Ganador": "Por jugar",
-    "Partido": "Por definir vs Por definir"
+    "Ganador": "France",
+    "Partido": "France vs Sweden",
+    "marcador_visual": "France 3 - 0 Sweden"
   },
   {
     "id": 75,
@@ -2164,24 +2241,25 @@
     "home_team": "Côte d'Ivoire",
     "home_team_code": "CIV",
     "home_team_flag": "https://crests.football-data.org/787.svg",
-    "away_team_id": null,
-    "away_team": null,
-    "away_team_code": null,
-    "away_team_flag": null,
+    "away_team_id": 35,
+    "away_team": "Norway",
+    "away_team_code": "NOR",
+    "away_team_flag": "https://crests.football-data.org/813.svg",
     "stadium_id": 1,
     "stadium": "MetLife Stadium",
     "stadium_city": "East Rutherford, NJ",
     "stadium_country": "USA",
     "kickoff_utc": "2026-06-30T17:00:00Z",
-    "home_score": null,
-    "away_score": null,
+    "home_score": 1,
+    "away_score": 2,
     "home_pen": null,
     "away_pen": null,
-    "status": "scheduled",
+    "status": "completed",
     "phase": null,
     "Tipo de Resultado": "Regular",
-    "Ganador": "Por jugar",
-    "Partido": "Côte d'Ivoire vs Por definir"
+    "Ganador": "Norway",
+    "Partido": "Côte d'Ivoire vs Norway",
+    "marcador_visual": "Côte d'Ivoire 1 - 2 Norway"
   },
   {
     "id": 100,
@@ -2192,52 +2270,54 @@
     "home_team": "Mexico",
     "home_team_code": "MEX",
     "home_team_flag": "https://crests.football-data.org/769.svg",
-    "away_team_id": null,
-    "away_team": null,
-    "away_team_code": null,
-    "away_team_flag": null,
+    "away_team_id": 18,
+    "away_team": "Ecuador",
+    "away_team_code": "ECU",
+    "away_team_flag": "https://crests.football-data.org/791.svg",
     "stadium_id": 14,
     "stadium": "Estadio Azteca",
     "stadium_city": "Mexico City",
     "stadium_country": "Mexico",
     "kickoff_utc": "2026-07-01T01:00:00Z",
-    "home_score": null,
-    "away_score": null,
+    "home_score": 2,
+    "away_score": 0,
     "home_pen": null,
     "away_pen": null,
-    "status": "scheduled",
+    "status": "completed",
     "phase": null,
     "Tipo de Resultado": "Regular",
-    "Ganador": "Por jugar",
-    "Partido": "Mexico vs Por definir"
+    "Ganador": "Mexico",
+    "Partido": "Mexico vs Ecuador",
+    "marcador_visual": "Mexico 2 - 0 Ecuador"
   },
   {
     "id": 104,
     "match_number": 80,
     "round": "R32",
     "group_name": null,
-    "home_team_id": null,
-    "home_team": null,
-    "home_team_code": null,
-    "home_team_flag": null,
-    "away_team_id": null,
-    "away_team": null,
-    "away_team_code": null,
-    "away_team_flag": null,
+    "home_team_id": 47,
+    "home_team": "England",
+    "home_team_code": "ENG",
+    "home_team_flag": "https://crests.football-data.org/770.svg",
+    "away_team_id": 44,
+    "away_team": "Congo DR",
+    "away_team_code": "COD",
+    "away_team_flag": "https://crests.football-data.org/congo_dr.svg",
     "stadium_id": 17,
     "stadium": "Mercedes-Benz Stadium",
     "stadium_city": "Atlanta, GA",
     "stadium_country": "USA",
     "kickoff_utc": "2026-07-01T16:00:00Z",
-    "home_score": null,
-    "away_score": null,
+    "home_score": 1,
+    "away_score": 1,
     "home_pen": null,
     "away_pen": null,
-    "status": "scheduled",
+    "status": "in_progress",
     "phase": null,
     "Tipo de Resultado": "Regular",
-    "Ganador": "Por jugar",
-    "Partido": "Por definir vs Por definir"
+    "Ganador": "En vivo",
+    "Partido": "England vs Congo DR",
+    "marcador_visual": "England 1 - 1 Congo DR"
   },
   {
     "id": 88,
@@ -2265,21 +2345,22 @@
     "phase": null,
     "Tipo de Resultado": "Regular",
     "Ganador": "Por jugar",
-    "Partido": "USA vs Bosnia-Herzegovina"
+    "Partido": "USA vs Bosnia-Herzegovina",
+    "marcador_visual": null
   },
   {
     "id": 83,
     "match_number": 81,
     "round": "R32",
     "group_name": null,
-    "home_team_id": null,
-    "home_team": null,
-    "home_team_code": null,
-    "home_team_flag": null,
-    "away_team_id": null,
-    "away_team": null,
-    "away_team_code": null,
-    "away_team_flag": null,
+    "home_team_id": 25,
+    "home_team": "Belgium",
+    "home_team_code": "BEL",
+    "home_team_flag": "https://crests.football-data.org/805.svg",
+    "away_team_id": 34,
+    "away_team": "Senegal",
+    "away_team_code": "SEN",
+    "away_team_flag": "https://crests.football-data.org/senegal.svg",
     "stadium_id": 4,
     "stadium": "Levi's Stadium",
     "stadium_city": "Santa Clara, CA",
@@ -2293,21 +2374,22 @@
     "phase": null,
     "Tipo de Resultado": "Regular",
     "Ganador": "Por jugar",
-    "Partido": "Por definir vs Por definir"
+    "Partido": "Belgium vs Senegal",
+    "marcador_visual": null
   },
   {
     "id": 81,
     "match_number": 84,
     "round": "R32",
     "group_name": null,
-    "home_team_id": null,
-    "home_team": null,
-    "home_team_code": null,
-    "home_team_flag": null,
-    "away_team_id": null,
-    "away_team": null,
-    "away_team_code": null,
-    "away_team_flag": null,
+    "home_team_id": 41,
+    "home_team": "Portugal",
+    "home_team_code": "POR",
+    "home_team_flag": "https://crests.football-data.org/765.svg",
+    "away_team_id": 48,
+    "away_team": "Croatia",
+    "away_team_code": "CRO",
+    "away_team_flag": "https://crests.football-data.org/799.svg",
     "stadium_id": 3,
     "stadium": "SoFi Stadium",
     "stadium_city": "Inglewood, CA",
@@ -2321,21 +2403,22 @@
     "phase": null,
     "Tipo de Resultado": "Regular",
     "Ganador": "Por jugar",
-    "Partido": "Por definir vs Por definir"
+    "Partido": "Portugal vs Croatia",
+    "marcador_visual": null
   },
   {
     "id": 98,
     "match_number": 83,
     "round": "R32",
     "group_name": null,
-    "home_team_id": null,
-    "home_team": null,
-    "home_team_code": null,
-    "home_team_flag": null,
-    "away_team_id": null,
-    "away_team": null,
-    "away_team_code": null,
-    "away_team_flag": null,
+    "home_team_id": 30,
+    "home_team": "Spain",
+    "home_team_code": "ESP",
+    "home_team_flag": "https://crests.football-data.org/760.svg",
+    "away_team_id": 39,
+    "away_team": "Austria",
+    "away_team_code": "AUT",
+    "away_team_flag": "https://crests.football-data.org/816.svg",
     "stadium_id": 13,
     "stadium": "BMO Field",
     "stadium_city": "Toronto, ON",
@@ -2349,7 +2432,8 @@
     "phase": null,
     "Tipo de Resultado": "Regular",
     "Ganador": "Por jugar",
-    "Partido": "Por definir vs Por definir"
+    "Partido": "Spain vs Austria",
+    "marcador_visual": null
   },
   {
     "id": 97,
@@ -2360,10 +2444,10 @@
     "home_team": "Switzerland",
     "home_team_code": "SUI",
     "home_team_flag": "https://crests.football-data.org/788.svg",
-    "away_team_id": null,
-    "away_team": null,
-    "away_team_code": null,
-    "away_team_flag": null,
+    "away_team_id": 38,
+    "away_team": "Algeria",
+    "away_team_code": "ALG",
+    "away_team_flag": "https://crests.football-data.org/algeria.svg",
     "stadium_id": 12,
     "stadium": "BC Place",
     "stadium_city": "Vancouver, BC",
@@ -2377,21 +2461,22 @@
     "phase": null,
     "Tipo de Resultado": "Regular",
     "Ganador": "Por jugar",
-    "Partido": "Switzerland vs Por definir"
+    "Partido": "Switzerland vs Algeria",
+    "marcador_visual": null
   },
   {
     "id": 78,
     "match_number": 88,
     "round": "R32",
     "group_name": null,
-    "home_team_id": null,
-    "home_team": null,
-    "home_team_code": null,
-    "home_team_flag": null,
-    "away_team_id": null,
-    "away_team": null,
-    "away_team_code": null,
-    "away_team_flag": null,
+    "home_team_id": 43,
+    "home_team": "Colombia",
+    "home_team_code": "COL",
+    "home_team_flag": "https://crests.football-data.org/818.svg",
+    "away_team_id": 45,
+    "away_team": "Ghana",
+    "away_team_code": "GHA",
+    "away_team_flag": "https://crests.football-data.org/ghana.svg",
     "stadium_id": 2,
     "stadium": "AT&T Stadium",
     "stadium_city": "Arlington, TX",
@@ -2405,7 +2490,8 @@
     "phase": null,
     "Tipo de Resultado": "Regular",
     "Ganador": "Por jugar",
-    "Partido": "Por definir vs Por definir"
+    "Partido": "Colombia vs Ghana",
+    "marcador_visual": null
   },
   {
     "id": 86,
@@ -2416,10 +2502,10 @@
     "home_team": "Australia",
     "home_team_code": "AUS",
     "home_team_flag": "https://crests.football-data.org/779.svg",
-    "away_team_id": null,
-    "away_team": null,
-    "away_team_code": null,
-    "away_team_flag": null,
+    "away_team_id": 26,
+    "away_team": "Egypt",
+    "away_team_code": "EGY",
+    "away_team_flag": "https://crests.football-data.org/825.svg",
     "stadium_id": 5,
     "stadium": "Hard Rock Stadium",
     "stadium_city": "Miami Gardens, FL",
@@ -2433,7 +2519,8 @@
     "phase": null,
     "Tipo de Resultado": "Regular",
     "Ganador": "Por jugar",
-    "Partido": "Australia vs Por definir"
+    "Partido": "Australia vs Egypt",
+    "marcador_visual": null
   },
   {
     "id": 91,
@@ -2444,10 +2531,10 @@
     "home_team": "Argentina",
     "home_team_code": "ARG",
     "home_team_flag": "https://crests.football-data.org/762.png",
-    "away_team_id": null,
-    "away_team": null,
-    "away_team_code": null,
-    "away_team_flag": null,
+    "away_team_id": 32,
+    "away_team": "Cabo Verde",
+    "away_team_code": "CPV",
+    "away_team_flag": "https://crests.football-data.org/cape_verde.svg",
     "stadium_id": 8,
     "stadium": "Arrowhead Stadium",
     "stadium_city": "Kansas City, MO",
@@ -2461,21 +2548,22 @@
     "phase": null,
     "Tipo de Resultado": "Regular",
     "Ganador": "Por jugar",
-    "Partido": "Argentina vs Por definir"
+    "Partido": "Argentina vs Cabo Verde",
+    "marcador_visual": null
   },
   {
     "id": 94,
     "match_number": 90,
     "round": "R16",
     "group_name": null,
-    "home_team_id": null,
-    "home_team": null,
-    "home_team_code": null,
-    "home_team_flag": null,
-    "away_team_id": null,
-    "away_team": null,
-    "away_team_code": null,
-    "away_team_flag": null,
+    "home_team_id": 15,
+    "home_team": "Paraguay",
+    "home_team_code": "PAR",
+    "home_team_flag": "https://crests.football-data.org/761.svg",
+    "away_team_id": 33,
+    "away_team": "France",
+    "away_team_code": "FRA",
+    "away_team_flag": "https://crests.football-data.org/773.svg",
     "stadium_id": 10,
     "stadium": "NRG Stadium",
     "stadium_city": "Houston, TX",
@@ -2489,21 +2577,22 @@
     "phase": null,
     "Tipo de Resultado": "Regular",
     "Ganador": "Por jugar",
-    "Partido": "Por definir vs Por definir"
+    "Partido": "Paraguay vs France",
+    "marcador_visual": null
   },
   {
     "id": 89,
     "match_number": 89,
     "round": "R16",
     "group_name": null,
-    "home_team_id": null,
-    "home_team": null,
-    "home_team_code": null,
-    "home_team_flag": null,
-    "away_team_id": null,
-    "away_team": null,
-    "away_team_code": null,
-    "away_team_flag": null,
+    "home_team_id": 5,
+    "home_team": "Canada",
+    "home_team_code": "CAN",
+    "home_team_flag": "https://crests.football-data.org/canada.svg",
+    "away_team_id": 12,
+    "away_team": "Morocco",
+    "away_team_code": "MAR",
+    "away_team_flag": "https://crests.football-data.org/morocco.svg",
     "stadium_id": 7,
     "stadium": "Lincoln Financial Field",
     "stadium_city": "Philadelphia, PA",
@@ -2517,21 +2606,22 @@
     "phase": null,
     "Tipo de Resultado": "Regular",
     "Ganador": "Por jugar",
-    "Partido": "Por definir vs Por definir"
+    "Partido": "Canada vs Morocco",
+    "marcador_visual": null
   },
   {
     "id": 74,
     "match_number": 91,
     "round": "R16",
     "group_name": null,
-    "home_team_id": null,
-    "home_team": null,
-    "home_team_code": null,
-    "home_team_flag": null,
-    "away_team_id": null,
-    "away_team": null,
-    "away_team_code": null,
-    "away_team_flag": null,
+    "home_team_id": 9,
+    "home_team": "Brazil",
+    "home_team_code": "BRA",
+    "home_team_flag": "https://crests.football-data.org/764.svg",
+    "away_team_id": 35,
+    "away_team": "Norway",
+    "away_team_code": "NOR",
+    "away_team_flag": "https://crests.football-data.org/813.svg",
     "stadium_id": 1,
     "stadium": "MetLife Stadium",
     "stadium_city": "East Rutherford, NJ",
@@ -2545,7 +2635,8 @@
     "phase": null,
     "Tipo de Resultado": "Regular",
     "Ganador": "Por jugar",
-    "Partido": "Por definir vs Por definir"
+    "Partido": "Brazil vs Norway",
+    "marcador_visual": null
   },
   {
     "id": 99,
@@ -2573,7 +2664,8 @@
     "phase": null,
     "Tipo de Resultado": "Regular",
     "Ganador": "Por jugar",
-    "Partido": "Por definir vs Por definir"
+    "Partido": "Por definir vs Por definir",
+    "marcador_visual": null
   },
   {
     "id": 77,
@@ -2601,7 +2693,8 @@
     "phase": null,
     "Tipo de Resultado": "Regular",
     "Ganador": "Por jugar",
-    "Partido": "Por definir vs Por definir"
+    "Partido": "Por definir vs Por definir",
+    "marcador_visual": null
   },
   {
     "id": 87,
@@ -2629,7 +2722,8 @@
     "phase": null,
     "Tipo de Resultado": "Regular",
     "Ganador": "Por jugar",
-    "Partido": "Por definir vs Por definir"
+    "Partido": "Por definir vs Por definir",
+    "marcador_visual": null
   },
   {
     "id": 103,
@@ -2657,7 +2751,8 @@
     "phase": null,
     "Tipo de Resultado": "Regular",
     "Ganador": "Por jugar",
-    "Partido": "Por definir vs Por definir"
+    "Partido": "Por definir vs Por definir",
+    "marcador_visual": null
   },
   {
     "id": 96,
@@ -2685,7 +2780,8 @@
     "phase": null,
     "Tipo de Resultado": "Regular",
     "Ganador": "Por jugar",
-    "Partido": "Por definir vs Por definir"
+    "Partido": "Por definir vs Por definir",
+    "marcador_visual": null
   },
   {
     "id": 92,
@@ -2713,7 +2809,8 @@
     "phase": null,
     "Tipo de Resultado": "Regular",
     "Ganador": "Por jugar",
-    "Partido": "Por definir vs Por definir"
+    "Partido": "Por definir vs Por definir",
+    "marcador_visual": null
   },
   {
     "id": 80,
@@ -2741,7 +2838,8 @@
     "phase": null,
     "Tipo de Resultado": "Regular",
     "Ganador": "Por jugar",
-    "Partido": "Por definir vs Por definir"
+    "Partido": "Por definir vs Por definir",
+    "marcador_visual": null
   },
   {
     "id": 85,
@@ -2769,7 +2867,8 @@
     "phase": null,
     "Tipo de Resultado": "Regular",
     "Ganador": "Por jugar",
-    "Partido": "Por definir vs Por definir"
+    "Partido": "Por definir vs Por definir",
+    "marcador_visual": null
   },
   {
     "id": 90,
@@ -2797,7 +2896,8 @@
     "phase": null,
     "Tipo de Resultado": "Regular",
     "Ganador": "Por jugar",
-    "Partido": "Por definir vs Por definir"
+    "Partido": "Por definir vs Por definir",
+    "marcador_visual": null
   },
   {
     "id": 76,
@@ -2825,7 +2925,8 @@
     "phase": null,
     "Tipo de Resultado": "Regular",
     "Ganador": "Por jugar",
-    "Partido": "Por definir vs Por definir"
+    "Partido": "Por definir vs Por definir",
+    "marcador_visual": null
   },
   {
     "id": 102,
@@ -2853,7 +2954,8 @@
     "phase": null,
     "Tipo de Resultado": "Regular",
     "Ganador": "Por jugar",
-    "Partido": "Por definir vs Por definir"
+    "Partido": "Por definir vs Por definir",
+    "marcador_visual": null
   },
   {
     "id": 84,
@@ -2881,7 +2983,8 @@
     "phase": null,
     "Tipo de Resultado": "Regular",
     "Ganador": "Por jugar",
-    "Partido": "Por definir vs Por definir"
+    "Partido": "Por definir vs Por definir",
+    "marcador_visual": null
   },
   {
     "id": 73,
@@ -2909,6 +3012,7 @@
     "phase": null,
     "Tipo de Resultado": "Regular",
     "Ganador": "Por jugar",
-    "Partido": "Por definir vs Por definir"
+    "Partido": "Por definir vs Por definir",
+    "marcador_visual": null
   }
 ]

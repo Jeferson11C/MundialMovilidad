@@ -1,28 +1,17 @@
 <script>
     let faseRankingActiva = 'grupos';
-    const mensajeRankingGrupos = `\u00a1La fase de grupos ha llegado a su fin! \u26bd\ufe0f
-
-Ahora damos paso a la fase de knockouts\u2026 y con ello, \u00a1arrancamos desde cero!
-Nuevo ranking, nuevas oportunidades y todo por jugar \ud83d\udcaa
-
-+3 puntos si aciertas marcador exacto (marcador hasta los 120 minutos)
-+1 punto si aciertas quien pasa a la siguiente fase
-Los pronosticos se recibiran hasta 10 minutos antes de cada partido
-
-Los ganadores de la fase de grupos se anunciar\u00e1n en el transcurso de la semana, \u00a1as\u00ed que atentos! \ud83d\udc40
-
-\u00a1A seguir participando y mucha suerte en esta nueva etapa! \ud83c\udf89`;
+    let rankingReintentos = 0;
 
     function cargarRanking() {
-        if (faseRankingActiva === 'grupos') {
-            mostrarAvisoRankingGrupos();
-            return;
-        }
-
-        ocultarAvisoRanking();
         fetch(`/api/ranking?fase=${faseRankingActiva}`)
             .then(res => res.json())
-            .then(datos => renderizarRanking(datos.ranking || []))
+            .then(datos => {
+                renderizarRanking(datos.ranking || [], Boolean(datos.actualizando));
+                if (datos.actualizando && rankingReintentos < 5) {
+                    rankingReintentos += 1;
+                    setTimeout(cargarRanking, 1500);
+                }
+            })
             .catch(err => console.error('Error al cargar ranking:', err));
     }
 
@@ -36,13 +25,14 @@ Los ganadores de la fase de grupos se anunciar\u00e1n en el transcurso de la sem
                     item.classList.toggle('active', activo);
                     item.setAttribute('aria-pressed', activo ? 'true' : 'false');
                 });
+                rankingReintentos = 0;
                 cargarRanking();
             });
             boton.setAttribute('aria-pressed', boton.classList.contains('active') ? 'true' : 'false');
         });
     }
 
-    function renderizarRanking(ranking) {
+    function renderizarRanking(ranking, actualizando = false) {
         const body = document.getElementById('ranking-body');
         const tabla = document.querySelector('.ranking-tabla-wrap');
         const resto = ranking;
@@ -58,20 +48,6 @@ Los ganadores de la fase de grupos se anunciar\u00e1n en el transcurso de la sem
                 </td>
             </tr>
         `;
-        }).join('') : '<tr><td colspan="3" class="empty-ranking">Todavia no hay participantes en el ranking.</td></tr>';
-    }
-
-    function mostrarAvisoRankingGrupos() {
-        const aviso = document.getElementById('ranking-aviso');
-        const tabla = document.querySelector('.ranking-tabla-wrap');
-        tabla.classList.add('hidden');
-        aviso.classList.remove('hidden');
-        aviso.innerText = mensajeRankingGrupos;
-    }
-
-    function ocultarAvisoRanking() {
-        const aviso = document.getElementById('ranking-aviso');
-        aviso.classList.add('hidden');
-        aviso.innerText = '';
+        }).join('') : `<tr><td colspan="3" class="empty-ranking">${actualizando ? 'Obteniendo ranking...' : 'Todavia no hay participantes en el ranking.'}</td></tr>`;
     }
 </script>

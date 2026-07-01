@@ -1,6 +1,7 @@
 <script>
     let datosTableroActual = null;
     let faseActiva = 'partidos';
+    let tableroReintentos = 0;
 
     function obtenerCodigoBandera(nombrePais) {
         const codigos = {
@@ -92,6 +93,12 @@
             .then(datos => {
                 datosTableroActual = datos;
                 renderizarVistaActiva();
+                if (datos.actualizando && tableroReintentos < 5) {
+                    tableroReintentos += 1;
+                    setTimeout(cargarDatos, 2000);
+                } else if (!datos.actualizando) {
+                    tableroReintentos = 0;
+                }
             })
             .catch(err => console.error('Error al cargar:', err));
     }
