@@ -173,6 +173,10 @@ def convertir_utc_a_peru(fecha_utc_str):
     return fecha_utc.astimezone(PERU_TZ)
 
 
+def formatear_fecha_key_sheet(fecha_peru_dt):
+    return f"{fecha_peru_dt.day}/{fecha_peru_dt.month:02d}/{fecha_peru_dt.year}"
+
+
 def _leer_ranking_desde_google_sheet(url_csv):
     response = requests.get(url_csv, timeout=20, verify=False)
     response.raise_for_status()
@@ -651,19 +655,27 @@ def guardar_datos_excel(partidos):
         aplicar_estadio_por_match_number(fila)
         fila["home_team_flag"] = None
         fila["away_team_flag"] = None
+        fila["home_team"] = traducir_equipo(fila.get("home_team"))
+        fila["away_team"] = traducir_equipo(fila.get("away_team"))
 
         fecha_utc_str = fila.get("kickoff_utc")
         if fecha_utc_str:
             try:
-                fila["kickoff_utc"] = convertir_utc_a_peru(fecha_utc_str).strftime("%d/%m/%Y")
+                fecha_peru_dt = convertir_utc_a_peru(fecha_utc_str)
+                fila["kickoff_utc"] = fecha_peru_dt.strftime("%d/%m/%Y")
+                fila["fecha_peru_str"] = f"{fecha_peru_dt.day} de {MESES[fecha_peru_dt.month]}"
+                fila["hora_peru"] = fecha_peru_dt.strftime("%H:%M")
+                fila["fecha_peru_key"] = formatear_fecha_key_sheet(fecha_peru_dt)
             except Exception:
                 fila["kickoff_utc"] = str(fecha_utc_str)[:10]
+                if fila.get("hora_peru"):
+                    fila["hora_peru"] = str(fila.get("hora_peru"))[:5]
 
         filas.append(fila)
 
     df = pl.DataFrame(filas)
     df_final = df.with_columns([
-        (pl.lit("'") + pl.col("hora_peru").fill_null("").str.slice(0, 5)).alias("hora_peru"),
+        pl.col("hora_peru").fill_null("").str.slice(0, 5).alias("hora_peru"),
         
         pl.when(pl.col("Tipo de Resultado") == "Tiempo extra")
           .then(pl.lit("Tiempo extra"))
