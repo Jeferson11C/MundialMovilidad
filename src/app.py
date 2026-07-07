@@ -484,6 +484,68 @@ def calcular_marcador_base(full_time, penalties):
     return home_score, away_score, home_pen, away_pen
 
 
+def inferir_estado_por_marcador(status, kickoff_utc, home_score, away_score, ahora_peru=None):
+    if status in {"completed", "in_progress"}:
+        return status
+    if home_score is None or away_score is None or not kickoff_utc:
+        return status
+
+    try:
+        ahora_peru = ahora_peru or datetime.now(PERU_TZ)
+        inicio_peru = convertir_utc_a_peru(kickoff_utc)
+    except Exception:
+        return "in_progress"
+
+    if inicio_peru <= ahora_peru <= inicio_peru + timedelta(hours=4):
+        return "in_progress"
+    if ahora_peru > inicio_peru + timedelta(hours=4):
+        return "completed"
+    return status
+
+
+def obtener_ganador_desde_partido(partido):
+    status = partido.get("status")
+    if status == "scheduled":
+        return "Por jugar"
+    if status in {"live", "in_progress"}:
+        return "En vivo"
+
+    home_team = partido.get("home_team") or "Por definir"
+    away_team = partido.get("away_team") or "Por definir"
+    home_score = partido.get("home_score")
+    away_score = partido.get("away_score")
+    home_pen = partido.get("home_pen")
+    away_pen = partido.get("away_pen")
+
+    if status == "completed":
+        if home_pen is not None and away_pen is not None:
+            return home_team if home_pen > away_pen else away_team
+        if home_score is not None and away_score is not None:
+            if home_score > away_score:
+                return home_team
+            if away_score > home_score:
+                return away_team
+            return "Empate"
+    return "Por jugar"
+
+
+def actualizar_campos_derivados_partido(partido):
+    partido["Partido"] = (
+        f"{partido.get('home_team') or 'Por definir'} vs "
+        f"{partido.get('away_team') or 'Por definir'}"
+    )
+    partido["Ganador"] = obtener_ganador_desde_partido(partido)
+    partido["marcador_visual"] = construir_marcador_visual(
+        partido.get("home_team") or "Por definir",
+        partido.get("away_team") or "Por definir",
+        partido.get("home_score"),
+        partido.get("away_score"),
+        partido.get("home_pen"),
+        partido.get("away_pen"),
+    )
+    return partido
+
+
 def construir_marcador_visual(home_team, away_team, home_score, away_score, home_pen, away_pen):
     if home_score is None or away_score is None:
         return None
@@ -503,6 +565,12 @@ def transformar_partido_football_data(match, match_number, errores_mapeo):
     home_score, away_score, home_pen, away_pen = calcular_marcador_base(full_time, penalties)
     round_name = STAGE_TO_ROUND.get(match.get("stage"))
     status = STATUS_TO_INTERNAL.get(match.get("status"), "scheduled")
+    status = inferir_estado_por_marcador(
+        status,
+        match.get("utcDate"),
+        home_score,
+        away_score,
+    )
     internal_id = INTERNAL_ID_BY_MATCH_NUMBER.get(match_number)
     stadium_id, stadium, stadium_city, stadium_country = STADIUM_BY_MATCH_NUMBER.get(
         match_number,
@@ -790,11 +858,19 @@ def construir_cache_tablero(fecha_hoy_dt):
             p["away_team"] = traducir_equipo(p["away_team"])
 
         fecha_utc_str = p.get("kickoff_utc")
+        p["status"] = inferir_estado_por_marcador(
+            p.get("status"),
+            fecha_utc_str,
+            p.get("home_score"),
+            p.get("away_score"),
+            fecha_hoy_dt,
+        )
         if fecha_utc_str:
             fecha_peru_dt = convertir_utc_a_peru(fecha_utc_str)
             p["fecha_peru_str"] = f"{fecha_peru_dt.day} de {MESES[fecha_peru_dt.month]}"
             p["hora_peru"] = fecha_peru_dt.strftime("%H:%M")
             p["fecha_peru_key"] = fecha_peru_dt.strftime("%Y-%m-%d")
+        actualizar_campos_derivados_partido(p)
 
     partidos_ordenados = sorted(fixture_cache, key=lambda x: x.get("kickoff_utc", ""))
     partidos_grupo = [p for p in partidos_ordenados if p.get("round") == "group"]

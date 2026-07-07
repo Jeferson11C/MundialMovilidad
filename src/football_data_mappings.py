@@ -11,7 +11,9 @@ STAGE_TO_ROUND = {
 STATUS_TO_INTERNAL = {
     "TIMED": "scheduled",
     "SCHEDULED": "scheduled",
+    "LIVE": "in_progress",
     "IN_PLAY": "in_progress",
+    "INPLAY": "in_progress",
     "PAUSED": "in_progress",
     "FINISHED": "completed",
     "POSTPONED": "postponed",

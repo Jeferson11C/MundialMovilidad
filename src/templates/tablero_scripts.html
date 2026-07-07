@@ -725,14 +725,17 @@
         });
 
         const r32 = ordenarR32PorBracket(partidosPorRonda.R32);
+        const partidosR16 = partidosPorRonda.R16 || [];
+        const partidosQF = partidosPorRonda.QF || [];
+        const partidosSF = partidosPorRonda.SF || [];
         const r16 = {
-            izquierda: construirRondaDerivada('R16', dividirPartidosLlave(partidosPorRonda.R16, 4).izquierda, [
+            izquierda: construirRondaDerivada('R16', partidosR16, [
                 [r32.izquierda[0], r32.izquierda[1]],
                 [r32.izquierda[2], r32.izquierda[3]],
                 [r32.izquierda[4], r32.izquierda[5]],
                 [r32.izquierda[6], r32.izquierda[7]]
             ]),
-            derecha: construirRondaDerivada('R16', dividirPartidosLlave(partidosPorRonda.R16, 4).derecha, [
+            derecha: construirRondaDerivada('R16', partidosR16, [
                 [r32.derecha[0], r32.derecha[1]],
                 [r32.derecha[2], r32.derecha[3]],
                 [r32.derecha[4], r32.derecha[5]],
@@ -740,20 +743,20 @@
             ])
         };
         const qf = {
-            izquierda: construirRondaDerivada('QF', dividirPartidosLlave(partidosPorRonda.QF, 2).izquierda, [
+            izquierda: construirRondaDerivada('QF', partidosQF, [
                 [r16.izquierda[0], r16.izquierda[1]],
                 [r16.izquierda[2], r16.izquierda[3]]
             ]),
-            derecha: construirRondaDerivada('QF', dividirPartidosLlave(partidosPorRonda.QF, 2).derecha, [
+            derecha: construirRondaDerivada('QF', partidosQF, [
                 [r16.derecha[0], r16.derecha[1]],
                 [r16.derecha[2], r16.derecha[3]]
             ])
         };
         const sf = {
-            izquierda: construirRondaDerivada('SF', dividirPartidosLlave(partidosPorRonda.SF, 1).izquierda, [
+            izquierda: construirRondaDerivada('SF', partidosSF, [
                 [qf.izquierda[0], qf.izquierda[1]]
             ]),
-            derecha: construirRondaDerivada('SF', dividirPartidosLlave(partidosPorRonda.SF, 1).derecha, [
+            derecha: construirRondaDerivada('SF', partidosSF, [
                 [qf.derecha[0], qf.derecha[1]]
             ])
         };
